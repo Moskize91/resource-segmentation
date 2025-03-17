@@ -15,7 +15,7 @@ class Group:
   body: list[Resource | Segment]
   tail: list[Resource | Segment]
 
-def group(
+def group_items(
     items: Iterable[Resource | Segment],
     max_count: int,
     gap_rate: float,

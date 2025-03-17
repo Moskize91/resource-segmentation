@@ -1,2 +1,4 @@
-from .segment import allocate_segments
-from .group import group, Group, Segment
+from .types import Resource
+from .splitter import split
+from .group import Group
+from .segment import Segment
