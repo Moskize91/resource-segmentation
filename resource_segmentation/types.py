@@ -29,6 +29,6 @@ class Segment(Generic[P]):
 class Group(Generic[P]):
   head_remain_count: int
   tail_remain_count: int
-  head: list[Resource[P] | Segment]
-  body: list[Resource[P] | Segment]
-  tail: list[Resource[P] | Segment]
+  head: list[Resource[P] | Segment[P]]
+  body: list[Resource[P] | Segment[P]]
+  tail: list[Resource[P] | Segment[P]]
