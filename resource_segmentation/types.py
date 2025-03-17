@@ -18,3 +18,17 @@ class Resource(Generic[P]):
   start_incision: Incision
   end_incision: Incision
   payload: P
+
+
+@dataclass
+class Segment:
+  count: int
+  resources: list[Resource]
+
+@dataclass
+class Group:
+  head_remain_count: int
+  tail_remain_count: int
+  head: list[Resource | Segment]
+  body: list[Resource | Segment]
+  tail: list[Resource | Segment]

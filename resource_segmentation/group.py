@@ -2,18 +2,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Iterable, Generator
 from math import floor
-from .types import Resource
-from .segment import Segment
+from .types import Group, Resource, Segment
 from .stream import Stream
 
-
-@dataclass
-class Group:
-  head_remain_count: int
-  tail_remain_count: int
-  head: list[Resource | Segment]
-  body: list[Resource | Segment]
-  tail: list[Resource | Segment]
 
 def group_items(
     items: Iterable[Resource | Segment],

@@ -1,9 +1,8 @@
 import unittest
 
-from resource_segmentation import group_items, allocate_segments
-from resource_segmentation.types import Resource, Incision
-from resource_segmentation.group import Group
-from resource_segmentation.segment import Segment
+from resource_segmentation.types import Resource, Incision, Group, Segment
+from resource_segmentation.group import group_items
+from resource_segmentation.segment import allocate_segments
 
 
 class TestGroup(unittest.TestCase):

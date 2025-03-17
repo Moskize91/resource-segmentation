@@ -1,16 +1,11 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from typing import Iterable, Generator
-from .types import Resource, Incision
+from .types import Resource, Incision, Segment
 from .stream import Stream
 
 
 _MIN_LEVEL = -1
-
-@dataclass
-class Segment:
-  count: int
-  resources: list[Resource]
 
 def allocate_segments(resources: Iterable[Resource], max_count: int) -> Generator[Resource | Segment, None, None]:
   segment = _collect_segment(Stream(resources), _MIN_LEVEL)
