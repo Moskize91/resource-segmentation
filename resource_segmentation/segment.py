@@ -1,18 +1,13 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import Iterable, Generator
-from .types import Resource, Incision
+from typing import Iterable, Generator, Generic
+from .types import P, Resource, Incision, Segment
 from .stream import Stream
 
 
 _MIN_LEVEL = -1
 
-@dataclass
-class Segment:
-  count: int
-  resources: list[Resource]
-
-def allocate_segments(resources: Iterable[Resource], max_count: int) -> Generator[Resource | Segment, None, None]:
+def allocate_segments(resources: Iterable[Resource[P]], max_count: int) -> Generator[Resource[P] | Segment[P], None, None]:
   segment = _collect_segment(Stream(resources), _MIN_LEVEL)
   for item in segment.children:
     if isinstance(item, _Segment):
@@ -32,17 +27,17 @@ def _transform_segment(segment: _Segment):
     )
 
 @dataclass
-class _Segment:
+class _Segment(Generic[P]):
   level: int
   count: int
   start_incision: Incision
   end_incision: Incision
-  children: list[Resource | _Segment]
+  children: list[Resource[P] | _Segment[P]]
 
-def _collect_segment(stream: Stream[Resource], level: int) -> _Segment:
+def _collect_segment(stream: Stream[Resource[P]], level: int) -> _Segment:
   start_incision: Incision = Incision.IMPOSSIBLE
   end_incision: Incision = Incision.IMPOSSIBLE
-  children: list[Resource | _Segment] = []
+  children: list[Resource[P] | _Segment[P]] = []
 
   while True:
     resource = stream.get()
@@ -81,12 +76,12 @@ def _collect_segment(stream: Stream[Resource], level: int) -> _Segment:
     children=children,
   )
 
-def _split_segment_if_need(segment: _Segment, max_count: int):
+def _split_segment_if_need(segment: _Segment[P], max_count: int):
   if segment.count <= max_count:
     yield segment
   else:
     count: int = 0
-    children: list[Resource | _Segment] = []
+    children: list[Resource[P] | _Segment[P]] = []
 
     for item in _unfold_segments(segment, max_count):
       if len(children) > 0 and count + item.count > max_count:
@@ -99,7 +94,7 @@ def _split_segment_if_need(segment: _Segment, max_count: int):
     if len(children) > 0:
       yield _create_segment(count, children, segment.level)
 
-def _unfold_segments(segment: _Segment, max_count: int) -> Generator[Resource | _Segment]:
+def _unfold_segments(segment: _Segment, max_count: int) -> Generator[Resource[P] | _Segment[P]]:
   for item in segment.children:
     if item.count > max_count and isinstance(item, _Segment):
       for sub_item in _split_segment_if_need(item, max_count):
@@ -107,7 +102,7 @@ def _unfold_segments(segment: _Segment, max_count: int) -> Generator[Resource | 
     else:
       yield item
 
-def _create_segment(count: int, children: list[Resource | _Segment], level: int) -> _Segment:
+def _create_segment(count: int, children: list[Resource[P] | _Segment[P]], level: int) -> _Segment[P]:
   return _Segment(
     level=level,
     count=count,
@@ -116,7 +111,7 @@ def _create_segment(count: int, children: list[Resource | _Segment], level: int)
     end_incision=children[-1].end_incision,
   )
 
-def _deep_iter_segment(segment: _Segment) -> Generator[Resource, None, None]:
+def _deep_iter_segment(segment: _Segment[P]) -> Generator[Resource, None, None]:
   for child in segment.children:
     if isinstance(child, _Segment):
       yield from _deep_iter_segment(child)

@@ -1,8 +1,8 @@
 import unittest
 
 from typing import Iterable
-from resource_segmentation.segment import allocate_segments, Segment
-from resource_segmentation.types import Resource, Incision
+from resource_segmentation.segment import allocate_segments
+from resource_segmentation.types import Resource, Incision, Segment
 
 
 class TestSegment(unittest.TestCase):

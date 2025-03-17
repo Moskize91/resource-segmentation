@@ -1,4 +1,2 @@
-from .types import Resource
+from .types import Resource, Segment, Group, Incision
 from .splitter import split
-from .group import Group
-from .segment import Segment
