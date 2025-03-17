@@ -1,15 +1,15 @@
 from typing import Iterable, Generator
-from .types import Resource
-from .group import group_items, Group
+from .types import P, Resource, Group
+from .group import group_items
 from .segment import allocate_segments
 
 
 def split(
-    resources: Iterable[Resource],
+    resources: Iterable[Resource[P]],
     max_segment_count: int,
     gap_rate: float = 0.0,
     tail_rate: float = 0.5,
-  ) -> Generator[Group, None, None]:
+  ) -> Generator[Group[P], None, None]:
   """Group resources.
 
   This method groups `resources`, where `max_segment_count` limits the cumulative quantity (represented by `Resource.token`) for each group.

@@ -1,22 +1,22 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import Iterable, Generator
+from typing import Iterable, Generator, Generic
 from math import floor
-from .types import Group, Resource, Segment
+from .types import P, Group, Resource, Segment
 from .stream import Stream
 
 
 def group_items(
-    items: Iterable[Resource | Segment],
+    items: Iterable[Resource[P] | Segment],
     max_count: int,
     gap_rate: float,
     tail_rate: float,
-  ) -> Generator[Group, None, None]:
+  ) -> Generator[Group[P], None, None]:
 
   gap_max_count = floor(max_count * gap_rate)
   assert gap_max_count > 0
 
-  curr_group: _Group = _Group(_Attributes(
+  curr_group: _Group[P] = _Group(_Attributes(
     max_count=max_count,
     gap_max_count=gap_max_count,
     tail_rate=tail_rate,
@@ -43,7 +43,7 @@ def group_items(
       break
     curr_group = curr_group.next()
 
-_Item = Resource | Segment
+_Item = Resource[P] | Segment[P]
 
 @dataclass
 class _Attributes:
@@ -51,7 +51,7 @@ class _Attributes:
   gap_max_count: float
   tail_rate: float
 
-class _Group:
+class _Group(Generic[P]):
   def __init__(self, attr: _Attributes):
     self._attr: _Attributes = attr
     body_max_count = attr.max_count - attr.gap_max_count * 2
@@ -74,8 +74,8 @@ class _Group:
       break
     return success
 
-  def next(self) -> _Group:
-    next_group: _Group = _Group(self._attr)
+  def next(self) -> _Group[P]:
+    next_group: _Group[P] = _Group(self._attr)
     next_head = next_group.head
     for item in reversed([*self.head, *self.body]):
       if next_head.can_append(item):
@@ -85,7 +85,7 @@ class _Group:
         break
     return next_group
 
-  def report(self) -> Group:
+  def report(self) -> Group[P]:
     count: int = 0
     for buffer in (self.head, self.body, self.tail):
       count += buffer.count

@@ -21,14 +21,14 @@ class Resource(Generic[P]):
 
 
 @dataclass
-class Segment:
+class Segment(Generic[P]):
   count: int
-  resources: list[Resource]
+  resources: list[Resource[P]]
 
 @dataclass
-class Group:
+class Group(Generic[P]):
   head_remain_count: int
   tail_remain_count: int
-  head: list[Resource | Segment]
-  body: list[Resource | Segment]
-  tail: list[Resource | Segment]
+  head: list[Resource[P] | Segment]
+  body: list[Resource[P] | Segment]
+  tail: list[Resource[P] | Segment]
