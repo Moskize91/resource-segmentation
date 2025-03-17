@@ -9,14 +9,14 @@ _MIN_LEVEL = -1
 
 @dataclass
 class Segment:
-  tokens: int
-  text_infos: list[Resource]
+  count: int
+  resources: list[Resource]
 
-def allocate_segments(text_infos: Iterable[Resource], max_tokens: int) -> Generator[Resource | Segment, None, None]:
-  segment = _collect_segment(Stream(text_infos), _MIN_LEVEL)
+def allocate_segments(resources: Iterable[Resource], max_count: int) -> Generator[Resource | Segment, None, None]:
+  segment = _collect_segment(Stream(resources), _MIN_LEVEL)
   for item in segment.children:
     if isinstance(item, _Segment):
-      for segment in _split_segment_if_need(item, max_tokens):
+      for segment in _split_segment_if_need(item, max_count):
         yield _transform_segment(segment)
     elif isinstance(item, Resource):
       yield item
@@ -27,14 +27,14 @@ def _transform_segment(segment: _Segment):
     return children[0]
   else:
     return Segment(
-      tokens=segment.tokens,
-      text_infos=children,
+      count=segment.count,
+      resources=children,
     )
 
 @dataclass
 class _Segment:
   level: int
-  tokens: int
+  count: int
   start_incision: Incision
   end_incision: Incision
   children: list[Resource | _Segment]
@@ -45,72 +45,72 @@ def _collect_segment(stream: Stream[Resource], level: int) -> _Segment:
   children: list[Resource | _Segment] = []
 
   while True:
-    text = stream.get()
-    if text is None:
+    resource = stream.get()
+    if resource is None:
       break
     if len(children) == 0: # is the first
-      start_incision = text.start_incision
-      children.append(text)
+      start_incision = resource.start_incision
+      children.append(resource)
     else:
-      pre_text = children[-1]
+      pre_resource = children[-1]
       incision_level = _to_level(
-        pre_text.end_incision,
-        text.start_incision,
+        pre_resource.end_incision,
+        resource.start_incision,
       )
       if incision_level < level:
-        stream.recover(text)
-        end_incision = text.end_incision
+        stream.recover(resource)
+        end_incision = resource.end_incision
         break
       elif incision_level > level:
-        stream.recover(text)
-        stream.recover(pre_text)
+        stream.recover(resource)
+        stream.recover(pre_resource)
         segment = _collect_segment(stream, incision_level)
         children[-1] = segment
       else:
-        children.append(text)
+        children.append(resource)
 
-  tokens: int = 0
+  count: int = 0
   for child in children:
-    tokens += child.tokens
+    count += child.count
 
   return _Segment(
     level=level,
-    tokens=tokens,
+    count=count,
     start_incision=start_incision,
     end_incision=end_incision,
     children=children,
   )
 
-def _split_segment_if_need(segment: _Segment, max_tokens: int):
-  if segment.tokens <= max_tokens:
+def _split_segment_if_need(segment: _Segment, max_count: int):
+  if segment.count <= max_count:
     yield segment
   else:
-    tokens: int = 0
+    count: int = 0
     children: list[Resource | _Segment] = []
 
-    for item in _unfold_segments(segment, max_tokens):
-      if len(children) > 0 and tokens + item.tokens > max_tokens:
-        yield _create_segment(tokens, children, segment.level)
-        tokens = 0
+    for item in _unfold_segments(segment, max_count):
+      if len(children) > 0 and count + item.count > max_count:
+        yield _create_segment(count, children, segment.level)
+        count = 0
         children = []
-      tokens += item.tokens
+      count += item.count
       children.append(item)
 
     if len(children) > 0:
-      yield _create_segment(tokens, children, segment.level)
+      yield _create_segment(count, children, segment.level)
 
-def _unfold_segments(segment: _Segment, max_tokens: int) -> Generator[Resource | _Segment]:
+def _unfold_segments(segment: _Segment, max_count: int) -> Generator[Resource | _Segment]:
   for item in segment.children:
-    if item.tokens > max_tokens and isinstance(item, _Segment):
-      for sub_item in _split_segment_if_need(item, max_tokens):
+    if item.count > max_count and isinstance(item, _Segment):
+      for sub_item in _split_segment_if_need(item, max_count):
         yield sub_item
     else:
       yield item
 
-def _create_segment(tokens: int, children: list[Resource | _Segment], level: int) -> _Segment:
+def _create_segment(count: int, children: list[Resource | _Segment], level: int) -> _Segment:
   return _Segment(
     level=level,
-    tokens=tokens,
+    count=count,
     children=children,
     start_incision=children[0].start_incision,
     end_incision=children[-1].end_incision,

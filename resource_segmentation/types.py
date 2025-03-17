@@ -14,7 +14,7 @@ class Incision(IntEnum):
 
 @dataclass
 class Resource(Generic[P]):
-  tokens: int
+  count: int
   start_incision: Incision
   end_incision: Incision
   payload: P

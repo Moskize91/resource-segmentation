@@ -62,7 +62,7 @@ def _get_pages(
     return
 
   if remain_tokens is not None:
-    tokens = sum(item.tokens for item in items)
+    tokens = sum(item.count for item in items)
     if remain_tokens == tokens:
       remain_tokens = None
 
@@ -77,7 +77,7 @@ def _get_pages(
           xml=get_element(item.page_index),
         )
       elif isinstance(item, Segment):
-        for text_info in item.text_infos:
+        for text_info in item.resources:
           yield PageXML(
             page_index=text_info.page_index,
             xml=get_element(text_info.page_index),
@@ -112,7 +112,7 @@ def _get_pages(
 
 def _clip_segment(segment: Segment, remain_tokens: int, clip_tail: bool):
   clipped: list[TextInfo] = []
-  iter_source = segment.text_infos
+  iter_source = segment.resources
   if not clip_tail:
     iter_source = reversed(iter_source)
 

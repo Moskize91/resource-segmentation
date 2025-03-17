@@ -166,12 +166,12 @@ class _Buffer:
 
   def append(self, item: _Item):
     self._items.append(item)
-    self._tokens += item.tokens
+    self._tokens += item.count
 
   def can_append(self, item: _Item) -> bool:
     if self._is_sealed:
       return False
     if len(self._items) == 0:
       return True
-    next_tokens = self._tokens + item.tokens
+    next_tokens = self._tokens + item.count
     return next_tokens <= self._max_tokens
