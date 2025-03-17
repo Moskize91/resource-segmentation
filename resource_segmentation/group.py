@@ -2,21 +2,21 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Iterable, Generator
 from math import floor
+from .types import Resource
 from .segment import Segment
 from .stream import Stream
-from ..common import TextInfo
 
 
 @dataclass
 class Group:
   head_remain_tokens: int
   tail_remain_tokens: int
-  head: list[TextInfo | Segment]
-  body: list[TextInfo | Segment]
-  tail: list[TextInfo | Segment]
+  head: list[Resource | Segment]
+  body: list[Resource | Segment]
+  tail: list[Resource | Segment]
 
 def group(
-    items: Iterable[TextInfo | Segment],
+    items: Iterable[Resource | Segment],
     max_tokens: int,
     gap_rate: float,
     tail_rate: float,
@@ -52,7 +52,7 @@ def group(
       break
     curr_group = curr_group.next()
 
-_Item = TextInfo | Segment
+_Item = Resource | Segment
 
 @dataclass
 class _Attributes:
