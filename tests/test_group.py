@@ -17,7 +17,7 @@ class TestGroup(unittest.TestCase):
     ]
     groups = list(group(
       items=allocate_segments(text_infos, 1000),
-      max_tokens=400,
+      max_count=400,
       gap_rate=0.25,
       tail_rate=0.5,
     ))
@@ -53,7 +53,7 @@ class TestGroup(unittest.TestCase):
     ]
     groups = list(group(
       items=allocate_segments(text_infos, 1000),
-      max_tokens=400,
+      max_count=400,
       gap_rate=0.25,
       tail_rate=0.5,
     ))
@@ -88,7 +88,7 @@ class TestGroup(unittest.TestCase):
     ]
     groups = list(group(
       items=allocate_segments(text_infos, 1000),
-      max_tokens=400,
+      max_count=400,
       gap_rate=0.25,
       tail_rate=0.8,
     ))
@@ -123,7 +123,7 @@ class TestGroup(unittest.TestCase):
     ]
     groups = list(group(
       items=allocate_segments(text_infos, 1000),
-      max_tokens=400,
+      max_count=400,
       gap_rate=0.25,
       tail_rate=1.0,
     ))
@@ -152,8 +152,8 @@ class TestGroup(unittest.TestCase):
 
 def _group_to_json(item: Group) -> dict:
   return {
-    "head_remain": item.head_remain_tokens,
-    "tail_remain": item.tail_remain_tokens,
+    "head_remain": item.head_remain_count,
+    "tail_remain": item.tail_remain_count,
     "head": [_item_to_json(item) for item in item.head],
     "body": [_item_to_json(item) for item in item.body],
     "tail": [_item_to_json(item) for item in item.tail],

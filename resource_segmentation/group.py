@@ -9,25 +9,25 @@ from .stream import Stream
 
 @dataclass
 class Group:
-  head_remain_tokens: int
-  tail_remain_tokens: int
+  head_remain_count: int
+  tail_remain_count: int
   head: list[Resource | Segment]
   body: list[Resource | Segment]
   tail: list[Resource | Segment]
 
 def group(
     items: Iterable[Resource | Segment],
-    max_tokens: int,
+    max_count: int,
     gap_rate: float,
     tail_rate: float,
   ) -> Generator[Group, None, None]:
 
-  gap_max_tokens = floor(max_tokens * gap_rate)
-  assert gap_max_tokens > 0
+  gap_max_count = floor(max_count * gap_rate)
+  assert gap_max_count > 0
 
   curr_group: _Group = _Group(_Attributes(
-    max_tokens=max_tokens,
-    gap_max_tokens=gap_max_tokens,
+    max_count=max_count,
+    gap_max_count=gap_max_count,
     tail_rate=tail_rate,
   ))
   curr_group.head.seal()
@@ -56,21 +56,19 @@ _Item = Resource | Segment
 
 @dataclass
 class _Attributes:
-  max_tokens: int
-  gap_max_tokens: float
+  max_count: int
+  gap_max_count: float
   tail_rate: float
 
 class _Group:
   def __init__(self, attr: _Attributes):
     self._attr: _Attributes = attr
-    body_max_tokens = attr.max_tokens - attr.gap_max_tokens * 2
-    assert body_max_tokens > 0
+    body_max_count = attr.max_count - attr.gap_max_count * 2
+    assert body_max_count > 0
 
-    # head and tail are passed to LLM as additional text
-    # to let LLM understand the context of the body text.
-    self.head: _Buffer = _Buffer(attr.gap_max_tokens)
-    self.tail: _Buffer = _Buffer(attr.gap_max_tokens)
-    self.body: _Buffer = _Buffer(body_max_tokens)
+    self.head: _Buffer = _Buffer(attr.gap_max_count)
+    self.tail: _Buffer = _Buffer(attr.gap_max_count)
+    self.body: _Buffer = _Buffer(body_max_count)
 
   def append(self, item: _Item) -> bool:
     success: bool = False
@@ -97,49 +95,49 @@ class _Group:
     return next_group
 
   def report(self) -> Group:
-    tokens: int = 0
+    count: int = 0
     for buffer in (self.head, self.body, self.tail):
-      tokens += buffer.tokens
+      count += buffer.count
 
-    head_remain_tokens = self.head.tokens
-    tail_remain_tokens = self.tail.tokens
+    head_remain_count = self.head.count
+    tail_remain_count = self.tail.count
 
-    if tokens > self._attr.max_tokens:
-      if self.body.tokens > self._attr.max_tokens:
-        head_remain_tokens = 0
-        tail_remain_tokens = 0
+    if count > self._attr.max_count:
+      if self.body.count > self._attr.max_count:
+        head_remain_count = 0
+        tail_remain_count = 0
       else:
         tail_rate = self._attr.tail_rate
-        remain_tokens = self._attr.max_tokens - self.body.tokens
-        if self.head.tokens < remain_tokens * (1.0 - tail_rate):
-          tail_remain_tokens = remain_tokens - self.head.tokens
-        elif self.tail.tokens < remain_tokens * tail_rate:
-          head_remain_tokens = remain_tokens - self.tail.tokens
+        remain_count = self._attr.max_count - self.body.count
+        if self.head.count < remain_count * (1.0 - tail_rate):
+          tail_remain_count = remain_count - self.head.count
+        elif self.tail.count < remain_count * tail_rate:
+          head_remain_count = remain_count - self.tail.count
         else:
-          head_remain_tokens = round(remain_tokens * (1.0 - tail_rate))
-          tail_remain_tokens = round(remain_tokens * tail_rate)
+          head_remain_count = round(remain_count * (1.0 - tail_rate))
+          tail_remain_count = round(remain_count * tail_rate)
 
     head = list(self.head)
     tail = list(self.tail)
 
-    if head_remain_tokens == 0:
+    if head_remain_count == 0:
       head = []
-    if tail_remain_tokens == 0:
+    if tail_remain_count == 0:
       tail = []
 
     return Group(
-      head_remain_tokens=head_remain_tokens,
-      tail_remain_tokens=tail_remain_tokens,
+      head_remain_count=head_remain_count,
+      tail_remain_count=tail_remain_count,
       head=head,
       body=list(self.body),
       tail=tail,
     )
 
 class _Buffer:
-  def __init__(self, max_tokens: int):
-    self._max_tokens: int = max_tokens
+  def __init__(self, max_count: int):
+    self._max_count: int = max_count
     self._items: list[_Item] = []
-    self._tokens: int = 0
+    self._count: int = 0
     self._is_sealed: bool = False
 
   @property
@@ -151,8 +149,8 @@ class _Buffer:
     return len(self._items) > 0
 
   @property
-  def tokens(self) -> int:
-    return self._tokens
+  def count(self) -> int:
+    return self._count
 
   def seal(self):
     self._is_sealed = True
@@ -166,12 +164,12 @@ class _Buffer:
 
   def append(self, item: _Item):
     self._items.append(item)
-    self._tokens += item.count
+    self._count += item.count
 
   def can_append(self, item: _Item) -> bool:
     if self._is_sealed:
       return False
     if len(self._items) == 0:
       return True
-    next_tokens = self._tokens + item.count
-    return next_tokens <= self._max_tokens
+    next_count = self._count + item.count
+    return next_count <= self._max_count

@@ -17,14 +17,14 @@ def get_and_clip_pages(llm: LLM, group: Group, get_element: Callable[[int], Elem
   head = _get_pages(
     llm=llm,
     items=group.head,
-    remain_tokens=group.head_remain_tokens,
+    remain_tokens=group.head_remain_count,
     clip_tail=False,
     get_element=get_element,
   )
   tail = _get_pages(
     llm=llm,
     items=group.tail,
-    remain_tokens=group.tail_remain_tokens,
+    remain_tokens=group.tail_remain_count,
     clip_tail=True,
     get_element=get_element,
   )
