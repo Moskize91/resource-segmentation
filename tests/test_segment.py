@@ -13,7 +13,7 @@ class TestSegment(unittest.TestCase):
       Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
     ]
     self.assertEqual(
-      _to_json(allocate_segments(resources, 100)),
+      _to_json(allocate_segments(iter(resources), 100)),
       _to_json(resources),
     )
 
@@ -27,7 +27,7 @@ class TestSegment(unittest.TestCase):
       Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
     ]
     self.assertEqual(
-      _to_json(allocate_segments(resources, 1000)),
+      _to_json(allocate_segments(iter(resources), 1000)),
       _to_json([
         Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
         Segment(
@@ -53,7 +53,7 @@ class TestSegment(unittest.TestCase):
       Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
     ]
     self.assertEqual(
-      _to_json(allocate_segments(resources, 1000)),
+      _to_json(allocate_segments(iter(resources), 1000)),
       _to_json([
         Segment(
           count=200,
@@ -85,7 +85,7 @@ class TestSegment(unittest.TestCase):
       Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
     ]
     self.assertEqual(
-      _to_json(allocate_segments(resources, 400)),
+      _to_json(allocate_segments(iter(resources), 400)),
       _to_json([
         Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
         Segment(
@@ -118,7 +118,7 @@ class TestSegment(unittest.TestCase):
       Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
     ]
     self.assertEqual(
-      _to_json(allocate_segments(resources, 300)),
+      _to_json(allocate_segments(iter(resources), 300)),
       _to_json([
         Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
         Segment(
