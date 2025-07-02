@@ -15,7 +15,7 @@ class TestGroup(unittest.TestCase):
       Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 4),
     ]
     groups = list(group_items(
-      items_iter=allocate_segments(resources, 1000),
+      items_iter=allocate_segments(iter(resources), 1000),
       max_count=400,
       gap_rate=0.25,
       tail_rate=0.5,
@@ -51,7 +51,7 @@ class TestGroup(unittest.TestCase):
       Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 3),
     ]
     groups = list(group_items(
-      items_iter=allocate_segments(resources, 1000),
+      items_iter=allocate_segments(iter(resources), 1000),
       max_count=400,
       gap_rate=0.25,
       tail_rate=0.5,
@@ -86,7 +86,7 @@ class TestGroup(unittest.TestCase):
       Resource(400, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 2),
     ]
     groups = list(group_items(
-      items_iter=allocate_segments(resources, 1000),
+      items_iter=allocate_segments(iter(resources), 1000),
       max_count=400,
       gap_rate=0.25,
       tail_rate=0.8,
@@ -121,7 +121,7 @@ class TestGroup(unittest.TestCase):
       Resource(400, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 2),
     ]
     groups = list(group_items(
-      items_iter=allocate_segments(resources, 1000),
+      items_iter=allocate_segments(iter(resources), 1000),
       max_count=400,
       gap_rate=0.25,
       tail_rate=1.0,
