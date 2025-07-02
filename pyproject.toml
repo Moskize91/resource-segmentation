@@ -25,7 +25,7 @@ readme = "README.md"
 homepage = "https://github.com/Moskize91/resource-segmentation"
 repository = "https://github.com/Moskize91/resource-segmentation"
 packages = [
-    {include = "pdf_craft" }
+    {include = "resource_segmentation" }
 ]
 classifiers=[
     "Development Status :: 2 - Pre-Alpha",
