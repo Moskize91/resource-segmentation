@@ -1,13 +1,13 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import Iterable, Generator, Generic
+from typing import Iterator, Generator, Generic
 from math import floor
 from .types import P, Group, Resource, Segment
 from .stream import Stream
 
 
 def group_items(
-    items: Iterable[Resource[P] | Segment],
+    items_iter: Iterator[Resource[P] | Segment],
     max_count: int,
     gap_rate: float,
     tail_rate: float,
@@ -22,7 +22,7 @@ def group_items(
     tail_rate=tail_rate,
   ))
   curr_group.head.seal()
-  stream: Stream[_Item] = Stream(items)
+  stream: Stream[_Item] = Stream(items_iter)
 
   while True:
     item = stream.get()

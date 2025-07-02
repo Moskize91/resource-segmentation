@@ -1,11 +1,11 @@
-from typing import Iterable, Iterator, TypeVar, Generic
+from typing import Iterator, TypeVar, Generic
 
 
 E = TypeVar("E")
 
 class Stream(Generic[E]):
-  def __init__(self, elements: Iterable[E]):
-    self._iterator: Iterator[E] = iter(elements)
+  def __init__(self, elements_iter: Iterator[E]):
+    self._iterator: Iterator[E] = elements_iter
     self._buffer: list[E] = []
 
   @property
