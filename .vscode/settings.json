@@ -4,5 +4,8 @@
   "files.trimTrailingWhitespace": true,
   "pylint.args": [
     "--generate-members"
+  ],
+  "cSpell.words": [
+    "pylint"
   ]
 }
