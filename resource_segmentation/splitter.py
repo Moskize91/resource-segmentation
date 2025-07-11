@@ -7,6 +7,7 @@ from .segment import allocate_segments
 def split(
     resources: Iterator[Resource[P]],
     max_segment_count: int,
+    border_incision: int,
     gap_rate: float = 0.0,
     tail_rate: float = 0.5,
   ) -> Generator[Group[P], None, None]:
@@ -33,5 +34,6 @@ def split(
     items_iter=allocate_segments(
       resources_iter=resources,
       max_count=max_segment_count,
+      border_incision=border_incision,
     ),
   )
