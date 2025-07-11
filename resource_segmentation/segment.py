@@ -1,7 +1,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from typing import Iterator, Generator, Generic
-from .types import P, Resource, Incision, Segment
+from .types import P, Resource, Segment
 from .stream import Stream
 
 
@@ -30,13 +30,13 @@ def _transform_segment(segment: _Segment):
 class _Segment(Generic[P]):
   level: int
   count: int
-  start_incision: Incision
-  end_incision: Incision
+  start_incision: int
+  end_incision: int
   children: list[Resource[P] | _Segment[P]]
 
 def _collect_segment(stream: Stream[Resource[P]], level: int) -> _Segment:
-  start_incision: Incision = Incision.IMPOSSIBLE
-  end_incision: Incision = Incision.IMPOSSIBLE
+  start_incision: int = -1
+  end_incision: int = -1
   children: list[Resource[P] | _Segment[P]] = []
 
   while True:
@@ -118,5 +118,5 @@ def _deep_iter_segment(segment: _Segment[P]) -> Generator[Resource, None, None]:
     elif isinstance(child, Resource):
       yield child
 
-def _to_level(left_incision: Incision, right_incision: Incision) -> int:
-  return max(_MIN_LEVEL, left_incision.value + right_incision.value)
+def _to_level(left_incision: int, right_incision: int) -> int:
+  return max(_MIN_LEVEL, left_incision + right_incision)

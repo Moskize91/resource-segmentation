@@ -1,18 +1,19 @@
 import unittest
 
-from resource_segmentation.types import Resource, Incision, Group, Segment
+from resource_segmentation.types import Resource, Group, Segment
 from resource_segmentation.group import group_items
 from resource_segmentation.segment import allocate_segments
+from tests.common import Incision
 
 
 class TestGroup(unittest.TestCase):
   def test_uniform_resources(self):
     resources = [
-      Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
-      Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 1),
-      Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 2),
-      Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 3),
-      Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 4),
+      Resource(100, Incision.IMPOSSIBLE.value, Incision.IMPOSSIBLE.value, 0),
+      Resource(100, Incision.IMPOSSIBLE.value, Incision.IMPOSSIBLE.value, 1),
+      Resource(100, Incision.IMPOSSIBLE.value, Incision.IMPOSSIBLE.value, 2),
+      Resource(100, Incision.IMPOSSIBLE.value, Incision.IMPOSSIBLE.value, 3),
+      Resource(100, Incision.IMPOSSIBLE.value, Incision.IMPOSSIBLE.value, 4),
     ]
     groups = list(group_items(
       items_iter=allocate_segments(iter(resources), 1000),
@@ -45,10 +46,10 @@ class TestGroup(unittest.TestCase):
 
   def test_huge_fragment_barrier(self):
     resources = [
-      Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
-      Resource(300, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 1),
-      Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 2),
-      Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 3),
+      Resource(100, Incision.IMPOSSIBLE.value, Incision.IMPOSSIBLE.value, 0),
+      Resource(300, Incision.IMPOSSIBLE.value, Incision.IMPOSSIBLE.value, 1),
+      Resource(100, Incision.IMPOSSIBLE.value, Incision.IMPOSSIBLE.value, 2),
+      Resource(100, Incision.IMPOSSIBLE.value, Incision.IMPOSSIBLE.value, 3),
     ]
     groups = list(group_items(
       items_iter=allocate_segments(iter(resources), 1000),
@@ -81,9 +82,9 @@ class TestGroup(unittest.TestCase):
 
   def test_distribute_between_head_and_tail(self):
     resources = [
-      Resource(400, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
-      Resource(200, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 1),
-      Resource(400, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 2),
+      Resource(400, Incision.IMPOSSIBLE.value, Incision.IMPOSSIBLE.value, 0),
+      Resource(200, Incision.IMPOSSIBLE.value, Incision.IMPOSSIBLE.value, 1),
+      Resource(400, Incision.IMPOSSIBLE.value, Incision.IMPOSSIBLE.value, 2),
     ]
     groups = list(group_items(
       items_iter=allocate_segments(iter(resources), 1000),
@@ -116,9 +117,9 @@ class TestGroup(unittest.TestCase):
 
   def test_distribute_all_to_tail(self):
     resources = [
-      Resource(400, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
-      Resource(200, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 1),
-      Resource(400, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 2),
+      Resource(400, Incision.IMPOSSIBLE.value, Incision.IMPOSSIBLE.value, 0),
+      Resource(200, Incision.IMPOSSIBLE.value, Incision.IMPOSSIBLE.value, 1),
+      Resource(400, Incision.IMPOSSIBLE.value, Incision.IMPOSSIBLE.value, 2),
     ]
     groups = list(group_items(
       items_iter=allocate_segments(iter(resources), 1000),
@@ -159,9 +160,7 @@ def _group_to_json(item: Group) -> dict:
   }
 
 def _item_to_json(item: Resource | Segment) -> str:
-  letter: str
   if isinstance(item, Resource):
-    letter = "T"
+    return f"T[{item.payload}]{item.count}"
   else:
-    letter = "S"
-  return f"{letter}[{item.payload}]{item.count}"
+    return f"S[]{item.count}"
