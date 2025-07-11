@@ -2,7 +2,8 @@ import unittest
 
 from typing import Iterable
 from resource_segmentation.segment import allocate_segments
-from resource_segmentation.types import Resource, Incision, Segment
+from resource_segmentation.types import Resource, Segment
+from tests.common import Incision
 
 
 class TestSegment(unittest.TestCase):
@@ -13,7 +14,7 @@ class TestSegment(unittest.TestCase):
       Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
     ]
     self.assertEqual(
-      _to_json(allocate_segments(iter(resources), 100)),
+      _to_json(allocate_segments(iter(resources), Incision.IMPOSSIBLE, 100)),
       _to_json(resources),
     )
 
@@ -27,7 +28,7 @@ class TestSegment(unittest.TestCase):
       Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
     ]
     self.assertEqual(
-      _to_json(allocate_segments(iter(resources), 1000)),
+      _to_json(allocate_segments(iter(resources), Incision.IMPOSSIBLE, 1000)),
       _to_json([
         Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
         Segment(
@@ -53,7 +54,7 @@ class TestSegment(unittest.TestCase):
       Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
     ]
     self.assertEqual(
-      _to_json(allocate_segments(iter(resources), 1000)),
+      _to_json(allocate_segments(iter(resources), Incision.IMPOSSIBLE, 1000)),
       _to_json([
         Segment(
           count=200,
@@ -85,7 +86,7 @@ class TestSegment(unittest.TestCase):
       Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
     ]
     self.assertEqual(
-      _to_json(allocate_segments(iter(resources), 400)),
+      _to_json(allocate_segments(iter(resources), Incision.IMPOSSIBLE, 400)),
       _to_json([
         Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
         Segment(
@@ -118,7 +119,7 @@ class TestSegment(unittest.TestCase):
       Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
     ]
     self.assertEqual(
-      _to_json(allocate_segments(iter(resources), 300)),
+      _to_json(allocate_segments(iter(resources), Incision.IMPOSSIBLE, 300)),
       _to_json([
         Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
         Segment(
@@ -161,6 +162,6 @@ def _to_json(items: Iterable[Resource | Segment]) -> list[dict]:
 def _resource_to_json(resource: Resource) -> list[dict]:
   return {
     "count": resource.count,
-    "start": resource.start_incision.name,
-    "end": resource.end_incision.name,
+    "start": resource.start_incision,
+    "end": resource.end_incision,
   }

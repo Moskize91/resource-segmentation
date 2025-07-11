@@ -1,8 +1,9 @@
 import unittest
 
-from resource_segmentation.types import Resource, Incision, Group, Segment
+from resource_segmentation.types import Resource, Group, Segment
 from resource_segmentation.group import group_items
 from resource_segmentation.segment import allocate_segments
+from tests.common import Incision
 
 
 class TestGroup(unittest.TestCase):
@@ -15,7 +16,7 @@ class TestGroup(unittest.TestCase):
       Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 4),
     ]
     groups = list(group_items(
-      items_iter=allocate_segments(iter(resources), 1000),
+      items_iter=allocate_segments(iter(resources), Incision.IMPOSSIBLE, 1000),
       max_count=400,
       gap_rate=0.25,
       tail_rate=0.5,
@@ -51,7 +52,7 @@ class TestGroup(unittest.TestCase):
       Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 3),
     ]
     groups = list(group_items(
-      items_iter=allocate_segments(iter(resources), 1000),
+      items_iter=allocate_segments(iter(resources), Incision.IMPOSSIBLE, 1000),
       max_count=400,
       gap_rate=0.25,
       tail_rate=0.5,
@@ -86,7 +87,7 @@ class TestGroup(unittest.TestCase):
       Resource(400, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 2),
     ]
     groups = list(group_items(
-      items_iter=allocate_segments(iter(resources), 1000),
+      items_iter=allocate_segments(iter(resources), Incision.IMPOSSIBLE, 1000),
       max_count=400,
       gap_rate=0.25,
       tail_rate=0.8,
@@ -121,7 +122,7 @@ class TestGroup(unittest.TestCase):
       Resource(400, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 2),
     ]
     groups = list(group_items(
-      items_iter=allocate_segments(iter(resources), 1000),
+      items_iter=allocate_segments(iter(resources), Incision.IMPOSSIBLE, 1000),
       max_count=400,
       gap_rate=0.25,
       tail_rate=1.0,
@@ -159,9 +160,7 @@ def _group_to_json(item: Group) -> dict:
   }
 
 def _item_to_json(item: Resource | Segment) -> str:
-  letter: str
   if isinstance(item, Resource):
-    letter = "T"
+    return f"T[{item.payload}]{item.count}"
   else:
-    letter = "S"
-  return f"{letter}[{item.payload}]{item.count}"
+    return f"S[]{item.count}"

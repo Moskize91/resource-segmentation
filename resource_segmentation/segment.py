@@ -1,14 +1,18 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from typing import Iterator, Generator, Generic
-from .types import P, Resource, Incision, Segment
+from .types import P, Resource, Segment
 from .stream import Stream
 
 
 _MIN_LEVEL = -1
 
-def allocate_segments(resources_iter: Iterator[Resource[P]], max_count: int) -> Generator[Resource[P] | Segment[P], None, None]:
-  segment = _collect_segment(Stream(resources_iter), _MIN_LEVEL)
+def allocate_segments(resources_iter: Iterator[Resource[P]], border_incision: int, max_count: int) -> Generator[Resource[P] | Segment[P], None, None]:
+  segment = _collect_segment(
+    stream=Stream(resources_iter),
+    border_incision=border_incision,
+    level=_MIN_LEVEL,
+  )
   for item in segment.children:
     if isinstance(item, _Segment):
       for segment in _split_segment_if_need(item, max_count):
@@ -30,13 +34,13 @@ def _transform_segment(segment: _Segment):
 class _Segment(Generic[P]):
   level: int
   count: int
-  start_incision: Incision
-  end_incision: Incision
+  start_incision: int
+  end_incision: int
   children: list[Resource[P] | _Segment[P]]
 
-def _collect_segment(stream: Stream[Resource[P]], level: int) -> _Segment:
-  start_incision: Incision = Incision.IMPOSSIBLE
-  end_incision: Incision = Incision.IMPOSSIBLE
+def _collect_segment(stream: Stream[Resource[P]], border_incision: int, level: int) -> _Segment:
+  start_incision: int = border_incision
+  end_incision: int = border_incision
   children: list[Resource[P] | _Segment[P]] = []
 
   while True:
@@ -59,7 +63,11 @@ def _collect_segment(stream: Stream[Resource[P]], level: int) -> _Segment:
       elif incision_level > level:
         stream.recover(resource)
         stream.recover(pre_resource)
-        segment = _collect_segment(stream, incision_level)
+        segment = _collect_segment(
+          stream=stream,
+          border_incision=border_incision,
+          level=incision_level,
+        )
         children[-1] = segment
       else:
         children.append(resource)
@@ -118,5 +126,5 @@ def _deep_iter_segment(segment: _Segment[P]) -> Generator[Resource, None, None]:
     elif isinstance(child, Resource):
       yield child
 
-def _to_level(left_incision: Incision, right_incision: Incision) -> int:
-  return max(_MIN_LEVEL, left_incision.value + right_incision.value)
+def _to_level(left_incision: int, right_incision: int) -> int:
+  return max(_MIN_LEVEL, left_incision + right_incision)
