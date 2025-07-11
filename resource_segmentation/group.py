@@ -14,7 +14,7 @@ def group_items(
   ) -> Generator[Group[P], None, None]:
 
   gap_max_count = floor(max_count * gap_rate)
-  assert gap_max_count > 0
+  assert gap_max_count >= 0
 
   curr_group: _Group[P] = _Group(_Attributes(
     max_count=max_count,
