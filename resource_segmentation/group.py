@@ -48,7 +48,7 @@ _Item = Resource[P] | Segment[P]
 @dataclass
 class _Attributes:
   max_count: int
-  gap_max_count: float
+  gap_max_count: int
   tail_rate: float
 
 class _Group(Generic[P]):

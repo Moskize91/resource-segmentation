@@ -3,141 +3,148 @@ import unittest
 from typing import Iterable
 from resource_segmentation.segment import allocate_segments
 from resource_segmentation.types import Resource, Segment
-from tests.common import Incision
 
 
 class TestSegment(unittest.TestCase):
   def test_no_segments(self):
+    """测试：没有段生成 - 所有资源都保持独立"""
     resources = [
-      Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
-      Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
-      Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
+      Resource(100, 2, 2, 0),
+      Resource(100, 2, 2, 0),
+      Resource(100, 2, 2, 0),
     ]
     self.assertEqual(
-      _to_json(allocate_segments(iter(resources), Incision.IMPOSSIBLE, 100)),
+      _to_json(allocate_segments(iter(resources), 2, 100)),
       _to_json(resources),
     )
 
-  def test_one_segment(self):
+  def test_segments_due_to_size_limit(self):
+    """测试：由于大小限制产生的段分割"""
     resources = [
-      Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
-      Resource(100, Incision.IMPOSSIBLE, Incision.MOST_LIKELY, 0),
-      Resource(100, Incision.MOST_LIKELY, Incision.MOST_LIKELY, 0),
-      Resource(100, Incision.MOST_LIKELY, Incision.IMPOSSIBLE, 0),
-      Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
-      Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
+      Resource(100, 2, 2, 0),
+      Resource(100, 2, 1, 0),
+      Resource(100, 1, 1, 0),
+      Resource(100, 1, 2, 0),
+      Resource(100, 2, 2, 0),
+      Resource(100, 2, 2, 0),
     ]
     self.assertEqual(
-      _to_json(allocate_segments(iter(resources), Incision.IMPOSSIBLE, 1000)),
+      _to_json(allocate_segments(iter(resources), 2, 400)),
       _to_json([
-        Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
+        Segment(
+          count=400,
+          resources=[
+            Resource(100, 2, 2, 0),
+            Resource(100, 2, 1, 0),
+            Resource(100, 1, 1, 0),
+            Resource(100, 1, 2, 0),
+          ],
+        ),
+        Segment(
+          count=200,
+          resources=[
+            Resource(100, 2, 2, 0),
+            Resource(100, 2, 2, 0),
+          ],
+        ),
+      ]),
+    )
+
+  def test_multiple_segments(self) -> None:
+    """测试：生成多个段"""
+    resources = [
+      Resource(100, 2, 2, 0),
+      Resource(100, 2, 1, 0),
+      Resource(100, 1, 1, 0),
+      Resource(100, 1, 2, 0),
+      Resource(100, 2, 2, 0),
+    ]
+    self.assertEqual(
+      _to_json(allocate_segments(iter(resources), 2, 300)),
+      _to_json([
+        Resource(100, 2, 2, 0),
         Segment(
           count=300,
-          resources = [
-            Resource(100, Incision.IMPOSSIBLE, Incision.MOST_LIKELY, 0),
-            Resource(100, Incision.MOST_LIKELY, Incision.MOST_LIKELY, 0),
-            Resource(100, Incision.MOST_LIKELY, Incision.IMPOSSIBLE, 0),
+          resources=[
+            Resource(100, 2, 1, 0),
+            Resource(100, 1, 1, 0),
+            Resource(100, 1, 2, 0),
           ],
         ),
-        Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
-        Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
+        Resource(100, 2, 2, 0),
       ]),
     )
 
-  def test_2_segments(self) -> None:
+  def test_size_based_segmentation(self) -> None:
+    """测试：基于大小的分段逻辑"""
     resources = [
-      Resource(100, Incision.IMPOSSIBLE, Incision.MOST_LIKELY, 0),
-      Resource(100, Incision.MOST_LIKELY, Incision.IMPOSSIBLE, 0),
-      Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
-      Resource(100, Incision.IMPOSSIBLE, Incision.MUST_BE, 0),
-      Resource(100, Incision.MUST_BE, Incision.IMPOSSIBLE, 0),
-      Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
+      Resource(100, 2, 2, 0),
+      Resource(100, 2, 1, 0),
+      Resource(100, 1, 1, 0),
+      Resource(250, 1, 1, 0),
+      Resource(100, 1, 1, 0),
+      Resource(100, 1, 2, 0),
+      Resource(100, 2, 2, 0),
     ]
     self.assertEqual(
-      _to_json(allocate_segments(iter(resources), Incision.IMPOSSIBLE, 1000)),
+      _to_json(allocate_segments(iter(resources), 2, 200)),
       _to_json([
+        Resource(100, 2, 2, 0),
         Segment(
           count=200,
-          resources = [
-            Resource(100, Incision.IMPOSSIBLE, Incision.MOST_LIKELY, 0),
-            Resource(100, Incision.MOST_LIKELY, Incision.IMPOSSIBLE, 0),
+          resources=[
+            Resource(100, 2, 1, 0),
+            Resource(100, 1, 1, 0),
           ],
         ),
-        Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
+        Resource(250, 1, 1, 0),
         Segment(
           count=200,
-          resources = [
-            Resource(100, Incision.IMPOSSIBLE, Incision.MUST_BE, 0),
-            Resource(100, Incision.MUST_BE, Incision.IMPOSSIBLE, 0),
+          resources=[
+            Resource(100, 1, 1, 0),
+            Resource(100, 1, 2, 0),
           ],
         ),
-        Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
+        Resource(100, 2, 2, 0),
       ]),
     )
 
-  def test_forced_splitted_segments(self) -> None:
+  def test_mixed_level_segmentation(self) -> None:
+    """测试：混合级别 incision 的分段行为"""
     resources = [
-      Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
-      Resource(100, Incision.IMPOSSIBLE, Incision.MOST_LIKELY, 0),
-      Resource(100, Incision.MOST_LIKELY, Incision.MOST_LIKELY, 0),
-      Resource(250, Incision.MOST_LIKELY, Incision.MOST_LIKELY, 0),
-      Resource(100, Incision.MOST_LIKELY, Incision.MOST_LIKELY, 0),
-      Resource(100, Incision.MOST_LIKELY, Incision.IMPOSSIBLE, 0),
-      Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
+      Resource(100, 2, 2, 0),
+      Resource(100, 2, 1, 0),
+      Resource(100, 1, 1, 0),
+      Resource(100, 1, -1, 0),
+      Resource(100, -1, 1, 0),
+      Resource(100, 1, 2, 0),
+      Resource(100, 2, 2, 0),
     ]
     self.assertEqual(
-      _to_json(allocate_segments(iter(resources), Incision.IMPOSSIBLE, 400)),
+      _to_json(allocate_segments(iter(resources), 2, 200)),
       _to_json([
-        Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
+        Resource(100, 2, 2, 0),
         Segment(
           count=200,
-          resources = [
-            Resource(100, Incision.IMPOSSIBLE, Incision.MOST_LIKELY, 0),
-            Resource(100, Incision.MOST_LIKELY, Incision.MOST_LIKELY, 0),
+          resources=[
+            Resource(100, 2, 1, 0),
+            Resource(100, 1, 1, 0),
           ],
         ),
-        Segment(
-          count=350,
-          resources = [
-            Resource(250, Incision.MOST_LIKELY, Incision.MOST_LIKELY, 0),
-            Resource(100, Incision.MOST_LIKELY, Incision.MOST_LIKELY, 0),
-          ],
-        ),
-        Resource(100, Incision.MOST_LIKELY, Incision.IMPOSSIBLE, 0),
-        Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
-      ]),
-    )
-
-  def test_forced_splitted_segments_with_multi_levels(self) -> None:
-    resources = [
-      Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
-      Resource(100, Incision.IMPOSSIBLE, Incision.MOST_LIKELY, 0),
-      Resource(100, Incision.MOST_LIKELY, Incision.MOST_LIKELY, 0),
-      Resource(100, Incision.MOST_LIKELY, Incision.MUST_BE, 0),
-      Resource(100, Incision.MUST_BE, Incision.MOST_LIKELY, 0),
-      Resource(100, Incision.MOST_LIKELY, Incision.IMPOSSIBLE, 0),
-      Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
-    ]
-    self.assertEqual(
-      _to_json(allocate_segments(iter(resources), Incision.IMPOSSIBLE, 300)),
-      _to_json([
-        Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
         Segment(
           count=200,
-          resources = [
-            Resource(100, Incision.IMPOSSIBLE, Incision.MOST_LIKELY, 0),
-            Resource(100, Incision.MOST_LIKELY, Incision.MOST_LIKELY, 0),
+          resources=[
+            Resource(100, 1, -1, 0),
+            Resource(100, -1, 1, 0),
           ],
         ),
         Segment(
-          count=300,
-          resources = [
-            Resource(100, Incision.MOST_LIKELY, Incision.MUST_BE, 0),
-            Resource(100, Incision.MUST_BE, Incision.MOST_LIKELY, 0),
-            Resource(100, Incision.MOST_LIKELY, Incision.IMPOSSIBLE, 0),
+          count=200,
+          resources=[
+            Resource(100, 1, 2, 0),
+            Resource(100, 2, 2, 0),
           ],
         ),
-        Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
       ]),
     )
 
@@ -154,12 +161,9 @@ def _to_json(items: Iterable[Resource | Segment]) -> list[dict]:
     else:
       raise ValueError(f"Unexpected: {item}")
 
-  # print("# JSON List")
-  # for i, item in enumerate(json_list):
-  #   print(i, item)
   return json_list
 
-def _resource_to_json(resource: Resource) -> list[dict]:
+def _resource_to_json(resource: Resource) -> dict:
   return {
     "count": resource.count,
     "start": resource.start_incision,
