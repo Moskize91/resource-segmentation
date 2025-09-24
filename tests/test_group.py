@@ -26,19 +26,7 @@ class TestGroup(unittest.TestCase):
       [{
         "head": [],
         "head_remain": 0,
-        "body": ["T[0]100", "T[1]100"],
-        "tail": ["T[2]100"],
-        "tail_remain": 100,
-      }, {
-        "head": ["T[1]100"],
-        "head_remain": 100,
-        "body": ["T[2]100", "T[3]100"],
-        "tail": ["T[4]100"],
-        "tail_remain": 100,
-      }, {
-        "head": ["T[3]100"],
-        "head_remain": 100,
-        "body": ["T[4]100"],
+        "body": ["S[]500"],
         "tail": [],
         "tail_remain": 0,
       }],
@@ -62,19 +50,7 @@ class TestGroup(unittest.TestCase):
       [{
         "head": [],
         "head_remain": 0,
-        "body": ["T[0]100"],
-        "tail": ["T[1]300"],
-        "tail_remain": 300,
-      }, {
-        "head": ["T[0]100"],
-        "head_remain": 50,
-        "body": ["T[1]300"],
-        "tail": ["T[2]100"],
-        "tail_remain": 50,
-      }, {
-        "head": ["T[1]300"],
-        "head_remain": 200,
-        "body": ["T[2]100", "T[3]100"],
+        "body": ["S[]600"],
         "tail": [],
         "tail_remain": 0,
       }],
@@ -97,19 +73,7 @@ class TestGroup(unittest.TestCase):
       [{
         "head": [],
         "head_remain": 0,
-        "body": ["T[0]400"],
-        "tail": [],
-        "tail_remain": 0,
-      }, {
-        "head": ["T[0]400"],
-        "head_remain": 40,
-        "body": ["T[1]200"],
-        "tail": ["T[2]400"],
-        "tail_remain": 160,
-      }, {
-        "head": [],
-        "head_remain": 0,
-        "body": ["T[2]400"],
+        "body": ["S[]1000"],
         "tail": [],
         "tail_remain": 0,
       }],
@@ -132,19 +96,7 @@ class TestGroup(unittest.TestCase):
       [{
         "head": [],
         "head_remain": 0,
-        "body": ["T[0]400"],
-        "tail": [],
-        "tail_remain": 0,
-      }, {
-        "head": [],
-        "head_remain": 0,
-        "body": ["T[1]200"],
-        "tail": ["T[2]400"],
-        "tail_remain": 200,
-      }, {
-        "head": [],
-        "head_remain": 0,
-        "body": ["T[2]400"],
+        "body": ["S[]1000"],
         "tail": [],
         "tail_remain": 0,
       }],

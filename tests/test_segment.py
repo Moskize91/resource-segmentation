@@ -30,17 +30,17 @@ class TestSegment(unittest.TestCase):
     self.assertEqual(
       _to_json(allocate_segments(iter(resources), Incision.IMPOSSIBLE, 1000)),
       _to_json([
-        Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
         Segment(
-          count=300,
-          resources = [
+          count=600,
+          resources=[
+            Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
             Resource(100, Incision.IMPOSSIBLE, Incision.MOST_LIKELY, 0),
             Resource(100, Incision.MOST_LIKELY, Incision.MOST_LIKELY, 0),
             Resource(100, Incision.MOST_LIKELY, Incision.IMPOSSIBLE, 0),
+            Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
+            Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
           ],
         ),
-        Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
-        Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
       ]),
     )
 
@@ -57,21 +57,16 @@ class TestSegment(unittest.TestCase):
       _to_json(allocate_segments(iter(resources), Incision.IMPOSSIBLE, 1000)),
       _to_json([
         Segment(
-          count=200,
-          resources = [
+          count=600,
+          resources=[
             Resource(100, Incision.IMPOSSIBLE, Incision.MOST_LIKELY, 0),
             Resource(100, Incision.MOST_LIKELY, Incision.IMPOSSIBLE, 0),
-          ],
-        ),
-        Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
-        Segment(
-          count=200,
-          resources = [
+            Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
             Resource(100, Incision.IMPOSSIBLE, Incision.MUST_BE, 0),
             Resource(100, Incision.MUST_BE, Incision.IMPOSSIBLE, 0),
+            Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
           ],
         ),
-        Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
       ]),
     )
 
@@ -88,23 +83,28 @@ class TestSegment(unittest.TestCase):
     self.assertEqual(
       _to_json(allocate_segments(iter(resources), Incision.IMPOSSIBLE, 400)),
       _to_json([
-        Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
         Segment(
-          count=200,
-          resources = [
+          count=300,
+          resources=[
+            Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
             Resource(100, Incision.IMPOSSIBLE, Incision.MOST_LIKELY, 0),
             Resource(100, Incision.MOST_LIKELY, Incision.MOST_LIKELY, 0),
           ],
         ),
         Segment(
           count=350,
-          resources = [
+          resources=[
             Resource(250, Incision.MOST_LIKELY, Incision.MOST_LIKELY, 0),
             Resource(100, Incision.MOST_LIKELY, Incision.MOST_LIKELY, 0),
           ],
         ),
-        Resource(100, Incision.MOST_LIKELY, Incision.IMPOSSIBLE, 0),
-        Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
+        Segment(
+          count=200,
+          resources=[
+            Resource(100, Incision.MOST_LIKELY, Incision.IMPOSSIBLE, 0),
+            Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
+          ],
+        ),
       ]),
     )
 
@@ -121,17 +121,17 @@ class TestSegment(unittest.TestCase):
     self.assertEqual(
       _to_json(allocate_segments(iter(resources), Incision.IMPOSSIBLE, 300)),
       _to_json([
-        Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
         Segment(
-          count=200,
-          resources = [
+          count=300,
+          resources=[
+            Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
             Resource(100, Incision.IMPOSSIBLE, Incision.MOST_LIKELY, 0),
             Resource(100, Incision.MOST_LIKELY, Incision.MOST_LIKELY, 0),
           ],
         ),
         Segment(
           count=300,
-          resources = [
+          resources=[
             Resource(100, Incision.MOST_LIKELY, Incision.MUST_BE, 0),
             Resource(100, Incision.MUST_BE, Incision.MOST_LIKELY, 0),
             Resource(100, Incision.MOST_LIKELY, Incision.IMPOSSIBLE, 0),

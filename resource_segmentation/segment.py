@@ -1,17 +1,16 @@
 from __future__ import annotations
+from sys import maxsize
 from dataclasses import dataclass
-from typing import Iterator, Generator, Generic
+from typing import cast, Iterator, Generator, Generic
 from .types import P, Resource, Segment
 from .stream import Stream
 
-
-_MIN_LEVEL = -1
 
 def allocate_segments(resources_iter: Iterator[Resource[P]], border_incision: int, max_count: int) -> Generator[Resource[P] | Segment[P], None, None]:
   segment = _collect_segment(
     stream=Stream(resources_iter),
     border_incision=border_incision,
-    level=_MIN_LEVEL,
+    level=-maxsize - 1,
   )
   for item in segment.children:
     if isinstance(item, _Segment):
@@ -62,7 +61,7 @@ def _collect_segment(stream: Stream[Resource[P]], border_incision: int, level: i
         break
       elif incision_level > level:
         stream.recover(resource)
-        stream.recover(pre_resource)
+        stream.recover(cast(Resource, pre_resource))
         segment = _collect_segment(
           stream=stream,
           border_incision=border_incision,
@@ -127,4 +126,4 @@ def _deep_iter_segment(segment: _Segment[P]) -> Generator[Resource, None, None]:
       yield child
 
 def _to_level(left_incision: int, right_incision: int) -> int:
-  return max(_MIN_LEVEL, left_incision + right_incision)
+  return left_incision + right_incision
