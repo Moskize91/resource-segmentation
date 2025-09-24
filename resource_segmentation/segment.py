@@ -10,7 +10,7 @@ def allocate_segments(resources_iter: Iterator[Resource[P]], border_incision: in
   segment = _collect_segment(
     stream=Stream(resources_iter),
     border_incision=border_incision,
-    level=-maxsize - 1,
+    level=maxsize,
   )
   for item in segment.children:
     if isinstance(item, _Segment):
@@ -55,11 +55,11 @@ def _collect_segment(stream: Stream[Resource[P]], border_incision: int, level: i
         pre_resource.end_incision,
         resource.start_incision,
       )
-      if incision_level < level:
+      if incision_level > level:
         stream.recover(resource)
         end_incision = resource.end_incision
         break
-      elif incision_level > level:
+      elif incision_level < level:
         stream.recover(resource)
         stream.recover(cast(Resource, pre_resource))
         segment = _collect_segment(

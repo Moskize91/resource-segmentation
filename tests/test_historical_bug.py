@@ -31,6 +31,6 @@ class TestHistoricalBug(unittest.TestCase):
           result_texts.append(text)
 
     self.assertEqual(result_texts, [
-      "This is the first sentence",
-      ".This is the second sentence.",
+      "This is the first sentence.",
+      "This is the second sentence.",
     ])

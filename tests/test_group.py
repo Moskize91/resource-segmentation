@@ -3,20 +3,20 @@ import unittest
 from resource_segmentation.types import Resource, Group, Segment
 from resource_segmentation.group import group_items
 from resource_segmentation.segment import allocate_segments
-from tests.common import Incision
+# Incision values: -2=MUST_BE, -1=MOST_LIKELY, 0=UNCERTAIN, 1=IMPOSSIBLE
 
 
 class TestGroup(unittest.TestCase):
   def test_uniform_resources(self):
     resources = [
-      Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
-      Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 1),
-      Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 2),
-      Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 3),
-      Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 4),
+      Resource(100, 1, 1, 0),
+      Resource(100, 1, 1, 1),
+      Resource(100, 1, 1, 2),
+      Resource(100, 1, 1, 3),
+      Resource(100, 1, 1, 4),
     ]
     groups = list(group_items(
-      items_iter=allocate_segments(iter(resources), Incision.IMPOSSIBLE, 1000),
+      items_iter=allocate_segments(iter(resources), 1, 1000),
       max_count=400,
       gap_rate=0.25,
       tail_rate=0.5,
@@ -34,13 +34,13 @@ class TestGroup(unittest.TestCase):
 
   def test_huge_fragment_barrier(self):
     resources = [
-      Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
-      Resource(300, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 1),
-      Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 2),
-      Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 3),
+      Resource(100, 1, 1, 0),
+      Resource(300, 1, 1, 1),
+      Resource(100, 1, 1, 2),
+      Resource(100, 1, 1, 3),
     ]
     groups = list(group_items(
-      items_iter=allocate_segments(iter(resources), Incision.IMPOSSIBLE, 1000),
+      items_iter=allocate_segments(iter(resources), 1, 1000),
       max_count=400,
       gap_rate=0.25,
       tail_rate=0.5,
@@ -58,12 +58,12 @@ class TestGroup(unittest.TestCase):
 
   def test_distribute_between_head_and_tail(self):
     resources = [
-      Resource(400, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
-      Resource(200, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 1),
-      Resource(400, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 2),
+      Resource(400, 1, 1, 0),
+      Resource(200, 1, 1, 1),
+      Resource(400, 1, 1, 2),
     ]
     groups = list(group_items(
-      items_iter=allocate_segments(iter(resources), Incision.IMPOSSIBLE, 1000),
+      items_iter=allocate_segments(iter(resources), 1, 1000),
       max_count=400,
       gap_rate=0.25,
       tail_rate=0.8,
@@ -81,12 +81,12 @@ class TestGroup(unittest.TestCase):
 
   def test_distribute_all_to_tail(self):
     resources = [
-      Resource(400, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
-      Resource(200, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 1),
-      Resource(400, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 2),
+      Resource(400, 1, 1, 0),
+      Resource(200, 1, 1, 1),
+      Resource(400, 1, 1, 2),
     ]
     groups = list(group_items(
-      items_iter=allocate_segments(iter(resources), Incision.IMPOSSIBLE, 1000),
+      items_iter=allocate_segments(iter(resources), 1, 1000),
       max_count=400,
       gap_rate=0.25,
       tail_rate=1.0,

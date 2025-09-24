@@ -3,42 +3,42 @@ import unittest
 from typing import Iterable
 from resource_segmentation.segment import allocate_segments
 from resource_segmentation.types import Resource, Segment
-from tests.common import Incision
+# Incision values: -2=MUST_BE, -1=MOST_LIKELY, 0=UNCERTAIN, 1=IMPOSSIBLE
 
 
 class TestSegment(unittest.TestCase):
   def test_no_segments(self):
     resources = [
-      Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
-      Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
-      Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
+      Resource(100, 1, 1, 0),
+      Resource(100, 1, 1, 0),
+      Resource(100, 1, 1, 0),
     ]
     self.assertEqual(
-      _to_json(allocate_segments(iter(resources), Incision.IMPOSSIBLE, 100)),
+      _to_json(allocate_segments(iter(resources), 1, 100)),
       _to_json(resources),
     )
 
   def test_one_segment(self):
     resources = [
-      Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
-      Resource(100, Incision.IMPOSSIBLE, Incision.MOST_LIKELY, 0),
-      Resource(100, Incision.MOST_LIKELY, Incision.MOST_LIKELY, 0),
-      Resource(100, Incision.MOST_LIKELY, Incision.IMPOSSIBLE, 0),
-      Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
-      Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
+      Resource(100, 1, 1, 0),
+      Resource(100, 1, -1, 0),
+      Resource(100, -1, -1, 0),
+      Resource(100, -1, 1, 0),
+      Resource(100, 1, 1, 0),
+      Resource(100, 1, 1, 0),
     ]
     self.assertEqual(
-      _to_json(allocate_segments(iter(resources), Incision.IMPOSSIBLE, 1000)),
+      _to_json(allocate_segments(iter(resources), 1, 1000)),
       _to_json([
         Segment(
           count=600,
           resources=[
-            Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
-            Resource(100, Incision.IMPOSSIBLE, Incision.MOST_LIKELY, 0),
-            Resource(100, Incision.MOST_LIKELY, Incision.MOST_LIKELY, 0),
-            Resource(100, Incision.MOST_LIKELY, Incision.IMPOSSIBLE, 0),
-            Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
-            Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
+            Resource(100, 1, 1, 0),
+            Resource(100, 1, -1, 0),
+            Resource(100, -1, -1, 0),
+            Resource(100, -1, 1, 0),
+            Resource(100, 1, 1, 0),
+            Resource(100, 1, 1, 0),
           ],
         ),
       ]),
@@ -46,25 +46,25 @@ class TestSegment(unittest.TestCase):
 
   def test_2_segments(self) -> None:
     resources = [
-      Resource(100, Incision.IMPOSSIBLE, Incision.MOST_LIKELY, 0),
-      Resource(100, Incision.MOST_LIKELY, Incision.IMPOSSIBLE, 0),
-      Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
-      Resource(100, Incision.IMPOSSIBLE, Incision.MUST_BE, 0),
-      Resource(100, Incision.MUST_BE, Incision.IMPOSSIBLE, 0),
-      Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
+      Resource(100, 1, -1, 0),
+      Resource(100, -1, 1, 0),
+      Resource(100, 1, 1, 0),
+      Resource(100, 1, -2, 0),
+      Resource(100, -2, 1, 0),
+      Resource(100, 1, 1, 0),
     ]
     self.assertEqual(
-      _to_json(allocate_segments(iter(resources), Incision.IMPOSSIBLE, 1000)),
+      _to_json(allocate_segments(iter(resources), 1, 1000)),
       _to_json([
         Segment(
           count=600,
           resources=[
-            Resource(100, Incision.IMPOSSIBLE, Incision.MOST_LIKELY, 0),
-            Resource(100, Incision.MOST_LIKELY, Incision.IMPOSSIBLE, 0),
-            Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
-            Resource(100, Incision.IMPOSSIBLE, Incision.MUST_BE, 0),
-            Resource(100, Incision.MUST_BE, Incision.IMPOSSIBLE, 0),
-            Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
+            Resource(100, 1, -1, 0),
+            Resource(100, -1, 1, 0),
+            Resource(100, 1, 1, 0),
+            Resource(100, 1, -2, 0),
+            Resource(100, -2, 1, 0),
+            Resource(100, 1, 1, 0),
           ],
         ),
       ]),
@@ -72,37 +72,37 @@ class TestSegment(unittest.TestCase):
 
   def test_forced_splitted_segments(self) -> None:
     resources = [
-      Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
-      Resource(100, Incision.IMPOSSIBLE, Incision.MOST_LIKELY, 0),
-      Resource(100, Incision.MOST_LIKELY, Incision.MOST_LIKELY, 0),
-      Resource(250, Incision.MOST_LIKELY, Incision.MOST_LIKELY, 0),
-      Resource(100, Incision.MOST_LIKELY, Incision.MOST_LIKELY, 0),
-      Resource(100, Incision.MOST_LIKELY, Incision.IMPOSSIBLE, 0),
-      Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
+      Resource(100, 1, 1, 0),
+      Resource(100, 1, -1, 0),
+      Resource(100, -1, -1, 0),
+      Resource(250, -1, -1, 0),
+      Resource(100, -1, -1, 0),
+      Resource(100, -1, 1, 0),
+      Resource(100, 1, 1, 0),
     ]
     self.assertEqual(
-      _to_json(allocate_segments(iter(resources), Incision.IMPOSSIBLE, 400)),
+      _to_json(allocate_segments(iter(resources), 1, 400)),
       _to_json([
         Segment(
           count=300,
           resources=[
-            Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
-            Resource(100, Incision.IMPOSSIBLE, Incision.MOST_LIKELY, 0),
-            Resource(100, Incision.MOST_LIKELY, Incision.MOST_LIKELY, 0),
+            Resource(100, 1, 1, 0),
+            Resource(100, 1, -1, 0),
+            Resource(100, -1, -1, 0),
           ],
         ),
         Segment(
           count=350,
           resources=[
-            Resource(250, Incision.MOST_LIKELY, Incision.MOST_LIKELY, 0),
-            Resource(100, Incision.MOST_LIKELY, Incision.MOST_LIKELY, 0),
+            Resource(250, -1, -1, 0),
+            Resource(100, -1, -1, 0),
           ],
         ),
         Segment(
           count=200,
           resources=[
-            Resource(100, Incision.MOST_LIKELY, Incision.IMPOSSIBLE, 0),
-            Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
+            Resource(100, -1, 1, 0),
+            Resource(100, 1, 1, 0),
           ],
         ),
       ]),
@@ -110,34 +110,34 @@ class TestSegment(unittest.TestCase):
 
   def test_forced_splitted_segments_with_multi_levels(self) -> None:
     resources = [
-      Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
-      Resource(100, Incision.IMPOSSIBLE, Incision.MOST_LIKELY, 0),
-      Resource(100, Incision.MOST_LIKELY, Incision.MOST_LIKELY, 0),
-      Resource(100, Incision.MOST_LIKELY, Incision.MUST_BE, 0),
-      Resource(100, Incision.MUST_BE, Incision.MOST_LIKELY, 0),
-      Resource(100, Incision.MOST_LIKELY, Incision.IMPOSSIBLE, 0),
-      Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
+      Resource(100, 1, 1, 0),
+      Resource(100, 1, -1, 0),
+      Resource(100, -1, -1, 0),
+      Resource(100, -1, -2, 0),
+      Resource(100, -2, -1, 0),
+      Resource(100, -1, 1, 0),
+      Resource(100, 1, 1, 0),
     ]
     self.assertEqual(
-      _to_json(allocate_segments(iter(resources), Incision.IMPOSSIBLE, 300)),
+      _to_json(allocate_segments(iter(resources), 1, 300)),
       _to_json([
         Segment(
           count=300,
           resources=[
-            Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
-            Resource(100, Incision.IMPOSSIBLE, Incision.MOST_LIKELY, 0),
-            Resource(100, Incision.MOST_LIKELY, Incision.MOST_LIKELY, 0),
+            Resource(100, 1, 1, 0),
+            Resource(100, 1, -1, 0),
+            Resource(100, -1, -1, 0),
           ],
         ),
         Segment(
           count=300,
           resources=[
-            Resource(100, Incision.MOST_LIKELY, Incision.MUST_BE, 0),
-            Resource(100, Incision.MUST_BE, Incision.MOST_LIKELY, 0),
-            Resource(100, Incision.MOST_LIKELY, Incision.IMPOSSIBLE, 0),
+            Resource(100, -1, -2, 0),
+            Resource(100, -2, -1, 0),
+            Resource(100, -1, 1, 0),
           ],
         ),
-        Resource(100, Incision.IMPOSSIBLE, Incision.IMPOSSIBLE, 0),
+        Resource(100, 1, 1, 0),
       ]),
     )
 
