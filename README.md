@@ -43,12 +43,14 @@ Groups are the final output containing:
 - `head`: Optional overlapping resources from previous group (automatically truncated)
 - `body`: Main resources in this group
 - `tail`: Optional overlapping resources for next group (automatically truncated)
-- `head_remain_count`/`tail_remain_count`: Actual count in head/tail after automatic truncation
+- `head_remain_count`/`tail_remain_count`: Maximum allowed count for head/tail (may be less than actual total if resources are indivisible)
 
 **Gap Truncation**: The library automatically truncates head and tail to optimize overlap:
 - `head` is truncated from back to front (keeping resources closer to body)
 - `tail` is truncated from front to back (keeping resources closer to body)
-- This ensures efficient memory usage while maintaining necessary overlap between groups
+- `remain_count` values indicate the **effective limit**, not necessarily the actual sum
+- Since resources are indivisible, actual totals in head/tail may exceed `remain_count`
+- This design alerts users to manually truncate if needed while respecting resource boundaries
 
 ## Usage Examples
 
@@ -79,8 +81,8 @@ groups = list(split(
 for i, group in enumerate(groups):
     print(f"Group {i}:")
     print(f"  Body: {len(group.body)} items, total count: {sum(item.count for item in group.body)}")
-    print(f"  Head: {len(group.head)} items (count: {group.head_remain_count})")
-    print(f"  Tail: {len(group.tail)} items (count: {group.tail_remain_count})")
+    print(f"  Head: {len(group.head)} items (remain_count: {group.head_remain_count})")
+    print(f"  Tail: {len(group.tail)} items (remain_count: {group.tail_remain_count})")
 ```
 
 ### Segment-based Grouping
@@ -178,7 +180,10 @@ Groups resources into segments with configurable constraints.
   - 0.0 means all overlap goes to head, 1.0 means all overlap goes to tail
 
 **Yields:**
-- `Group[P]`: Grouped resources with head, body, tail sections (head and tail are automatically truncated)
+- `Group[P]`: Grouped resources with head, body, tail sections
+  - Head and tail are automatically truncated based on `gap_rate` and `tail_rate`
+  - `head_remain_count`/`tail_remain_count` indicate the maximum allowed count (effective limits)
+  - Actual totals may exceed these limits when resources cannot be divided
 
 ### Data Types
 
@@ -204,8 +209,8 @@ class Segment(Generic[P]):
 ```python
 @dataclass
 class Group(Generic[P]):
-    head_remain_count: int                   # Actual count in head after truncation
-    tail_remain_count: int                   # Actual count in tail after truncation
+    head_remain_count: int                   # Maximum allowed count for head (effective limit)
+    tail_remain_count: int                   # Maximum allowed count for tail (effective limit)
     head: list[Resource[P] | Segment[P]]     # Head section (overlap, truncated)
     body: list[Resource[P] | Segment[P]]     # Main body section
     tail: list[Resource[P] | Segment[P]]     # Tail section (overlap, truncated)
