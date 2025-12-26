@@ -14,7 +14,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.10.16"
+          python-version: "3.11"
 
       - name: Step poetry
         uses: abatilo/actions-poetry@v3
@@ -27,7 +27,7 @@ jobs:
 
       - name: Lint
         run: |
-          poetry run pylint "--generated-member=cv2" ./resource_segmentation/**/*.py ./tests/**/*.py
+          poetry run pylint ./resource_segmentation/**/*.py ./tests/**/*.py
 
       - name: Run unit tests
         run: poetry run python test.py
