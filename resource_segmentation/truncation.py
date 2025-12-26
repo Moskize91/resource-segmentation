@@ -4,27 +4,20 @@ from .types import Group, P, Resource, Segment
 
 
 def truncate_gap(group: Group[P]) -> Group[P]:
-    truncated_head = _truncate_group_parts(
-        parts=group.head,
-        remain_count=group.head_remain_count,
-        remain_head=False,
-    )
-    truncated_tail = _truncate_group_parts(
-        parts=group.tail,
-        remain_count=group.tail_remain_count,
-        remain_head=True,
-    )
-
-    # Recalculate remain counts after truncation
-    head_remain_count = sum(item.count for item in truncated_head)
-    tail_remain_count = sum(item.count for item in truncated_tail)
-
     return Group(
-        head_remain_count=head_remain_count,
-        tail_remain_count=tail_remain_count,
-        head=truncated_head,
+        head_remain_count=group.head_remain_count,
+        tail_remain_count=group.tail_remain_count,
         body=group.body,
-        tail=truncated_tail,
+        head=_truncate_group_parts(
+            parts=group.head,
+            remain_count=group.head_remain_count,
+            remain_head=False,
+        ),
+        tail=_truncate_group_parts(
+            parts=group.tail,
+            remain_count=group.tail_remain_count,
+            remain_head=True,
+        ),
     )
 
 
