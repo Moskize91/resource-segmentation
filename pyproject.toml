@@ -38,3 +38,4 @@ classifiers=[
 [tool.poetry.group.dev.dependencies]
 pylint = "^3.3.7"
 ruff = "^0.8.0"
+pyright = "^1.1.390"
