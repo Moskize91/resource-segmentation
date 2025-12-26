@@ -3,6 +3,7 @@ from typing import Generator, Iterator
 
 from .group import group_items
 from .segment import allocate_segments
+from .truncation import truncate_gap
 from .types import Group, P, Resource
 
 
@@ -33,7 +34,7 @@ def split(
     gap_max_count = floor(max_segment_count * gap_rate)
     body_max_count = max_segment_count - gap_max_count * 2
 
-    yield from group_items(
+    for group in group_items(
         max_count=max_segment_count,
         gap_rate=gap_rate,
         tail_rate=tail_rate,
@@ -42,4 +43,5 @@ def split(
             max_count=body_max_count,
             border_incision=border_incision,
         ),
-    )
+    ):
+        yield truncate_gap(group, gap_max_count)

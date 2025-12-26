@@ -84,7 +84,81 @@ class TestHistoricalBug(unittest.TestCase):
         self.assertEqual(
             [group_to_counts(g) for g in groups],
             [
-                ([], [80] * 8, [80] * 4),  # Group 0: body=640, tail=320
-                ([80] * 8, [80] * 4, []),  # Group 1: head=640, body=320
+                ([], [80] * 8, [80]),  # Group 0: body=640, tail=80 (裁剪后)
+                ([80], [80] * 4, []),  # Group 1: head=80 (裁剪后), body=320
+            ],
+        )
+
+    def test_gap_truncation_with_equal_incision(self):
+        """
+        测试 truncate_gap 功能：当 head/tail 超出 gap_max_count 时，应该被裁剪。
+        """
+        resources = [
+            Resource(count=80, start_incision=0, end_incision=0, payload=i)
+            for i in range(12)
+        ]
+        groups = list(
+            split(
+                resources=iter(resources),
+                max_segment_count=1000,
+                border_incision=0,
+                gap_rate=0.15,
+                tail_rate=0.5,
+            )
+        )
+
+        gap_max_count = int(1000 * 0.15)  # 150
+        body_max_count = 1000 - gap_max_count * 2  # 700
+
+        def extract_resource_counts(
+            items: list[Segment[int] | Resource[int]] | list[Resource[int]],
+        ) -> list[int]:
+            counts = []
+            for item in items:
+                if isinstance(item, Segment):
+                    counts.extend(extract_resource_counts(item.resources))
+                else:  # Resource
+                    counts.append(item.count)
+            return counts
+
+        # 验证每个 group 的 head/tail 实际 count 不超过 gap_max_count
+        for group in groups:
+            head_total = sum(item.count for item in group.head)
+            tail_total = sum(item.count for item in group.tail)
+            body_total = sum(item.count for item in group.body)
+
+            # head 和 tail 的实际 count 应该不超过 gap_max_count
+            self.assertLessEqual(
+                head_total,
+                gap_max_count,
+                f"Head total {head_total} exceeds gap_max_count {gap_max_count}",
+            )
+            self.assertLessEqual(
+                tail_total,
+                gap_max_count,
+                f"Tail total {tail_total} exceeds gap_max_count {gap_max_count}",
+            )
+            # body 应该不超过 body_max_count
+            self.assertLessEqual(
+                body_total,
+                body_max_count,
+                f"Body total {body_total} exceeds body_max_count {body_max_count}",
+            )
+
+        # 验证具体的裁剪结果
+        # Group 0: head=[], body=[80]*8, tail=[80] (裁剪后)
+        # Group 1: head=[80] (裁剪后), body=[80]*4, tail=[]
+        self.assertEqual(
+            [
+                (
+                    extract_resource_counts(g.head),
+                    extract_resource_counts(g.body),
+                    extract_resource_counts(g.tail),
+                )
+                for g in groups
+            ],
+            [
+                ([], [80] * 8, [80]),  # tail 被裁剪成只有 1 个 80
+                ([80], [80] * 4, []),  # head 被裁剪成只有 1 个 80
             ],
         )
