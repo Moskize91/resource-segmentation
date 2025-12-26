@@ -114,7 +114,7 @@ from resource_segmentation import split, Resource
 # Mix of small and large resources
 resources = [
     Resource(100, 0, 0, 0),
-    Resource(300, 0, 0, 1),           # Large resource
+    Resource(300, 0, 0, 1), # Large resource
     Resource(100, 0, 0, 2),
     Resource(100, 0, 0, 3),
 ]
@@ -186,7 +186,7 @@ Groups resources into segments with configurable constraints.
 ```python
 @dataclass
 class Resource(Generic[P]):
-    count: int                    # Resource quantity
+    count: int                   # Resource quantity
     start_incision: int          # Start boundary level
     end_incision: int            # End boundary level
     payload: P                   # Associated data
@@ -204,8 +204,8 @@ class Segment(Generic[P]):
 ```python
 @dataclass
 class Group(Generic[P]):
-    head_remain_count: int                    # Actual count in head after truncation
-    tail_remain_count: int                    # Actual count in tail after truncation
+    head_remain_count: int                   # Actual count in head after truncation
+    tail_remain_count: int                   # Actual count in tail after truncation
     head: list[Resource[P] | Segment[P]]     # Head section (overlap, truncated)
     body: list[Resource[P] | Segment[P]]     # Main body section
     tail: list[Resource[P] | Segment[P]]     # Tail section (overlap, truncated)
