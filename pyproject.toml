@@ -1,6 +1,6 @@
 [project]
 name = "resource-segmentation"
-version = "0.0.6"
+version = "0.0.7"
 description = ""
 authors = [
     {name = "Tao Zeyu", email = "i@taozeyu.com"}
