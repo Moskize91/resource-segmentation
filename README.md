@@ -31,10 +31,15 @@ Segments are collections of resources that can be grouped together based on comp
 
 ### Groups
 Groups are the final output containing:
-- `head`: Optional overlapping resources from previous group
+- `head`: Optional overlapping resources from previous group (automatically truncated)
 - `body`: Main resources in this group
-- `tail`: Optional overlapping resources for next group
-- `head_remain_count`/`tail_remain_count`: Remaining capacity in head/tail
+- `tail`: Optional overlapping resources for next group (automatically truncated)
+- `head_remain_count`/`tail_remain_count`: Actual count in head/tail after automatic truncation
+
+**Gap Truncation**: The library automatically truncates head and tail to optimize overlap:
+- `head` is truncated from back to front (keeping resources closer to body)
+- `tail` is truncated from front to back (keeping resources closer to body)
+- This ensures efficient memory usage while maintaining necessary overlap between groups
 
 ## Usage Examples
 
@@ -45,11 +50,11 @@ from resource_segmentation import split, Resource
 
 # Create sample resources
 resources = [
-    Resource(100, 0, 0, "resource_0"),
-    Resource(100, 0, 0, "resource_1"),
-    Resource(100, 0, 0, "resource_2"),
-    Resource(100, 0, 0, "resource_3"),
-    Resource(100, 0, 0, "resource_4"),
+    Resource(100, 0, 0, 0),
+    Resource(100, 0, 0, 1),
+    Resource(100, 0, 0, 2),
+    Resource(100, 0, 0, 3),
+    Resource(100, 0, 0, 4),
 ]
 
 # Group resources with max 400 per group and 25% overlap
@@ -65,8 +70,8 @@ groups = list(split(
 for i, group in enumerate(groups):
     print(f"Group {i}:")
     print(f"  Body: {len(group.body)} items, total count: {sum(item.count for item in group.body)}")
-    print(f"  Head overlap: {len(group.head)} items")
-    print(f"  Tail overlap: {len(group.tail)} items")
+    print(f"  Head: {len(group.head)} items (count: {group.head_remain_count})")
+    print(f"  Tail: {len(group.tail)} items (count: {group.tail_remain_count})")
 ```
 
 ### Segment-based Grouping
@@ -155,13 +160,16 @@ Groups resources into segments with configurable constraints.
 
 **Parameters:**
 - `resources` (Iterator[Resource[P]]): Iterator of resources to group
-- `max_segment_count` (int): Maximum total count per segment
+- `max_segment_count` (int): Maximum total count per segment (including head, body, and tail)
 - `border_incision` (int): Border incision level for segmentation
 - `gap_rate` (float, optional): Overlap ratio between groups (0.0-1.0). Default: 0.0
+  - The gap (overlap) is calculated as `floor(max_segment_count * gap_rate)`
+  - The body max count is `max_segment_count - gap * 2`
 - `tail_rate` (float, optional): Distribution ratio for overlap (0.0-1.0). Default: 0.5
+  - 0.0 means all overlap goes to head, 1.0 means all overlap goes to tail
 
 **Yields:**
-- `Group[P]`: Grouped resources with head, body, tail sections
+- `Group[P]`: Grouped resources with head, body, tail sections (head and tail are automatically truncated)
 
 ### Data Types
 
@@ -187,18 +195,28 @@ class Segment(Generic[P]):
 ```python
 @dataclass
 class Group(Generic[P]):
-    head_remain_count: int                    # Remaining head capacity
-    tail_remain_count: int                    # Remaining tail capacity
-    head: list[Resource[P] | Segment[P]]     # Head section (overlap)
+    head_remain_count: int                    # Actual count in head after truncation
+    tail_remain_count: int                    # Actual count in tail after truncation
+    head: list[Resource[P] | Segment[P]]     # Head section (overlap, truncated)
     body: list[Resource[P] | Segment[P]]     # Main body section
-    tail: list[Resource[P] | Segment[P]]     # Tail section (overlap)
+    tail: list[Resource[P] | Segment[P]]     # Tail section (overlap, truncated)
 ```
 
 ### Boundary Levels
 
 The library uses integer boundary levels to determine how resources can be segmented. Higher values indicate stronger boundary conditions.
 
-## Testing
+## Development
+
+### Setup
+
+First, install dependencies using Poetry:
+
+```bash
+poetry install
+```
+
+### Testing
 
 Run the test suite:
 
