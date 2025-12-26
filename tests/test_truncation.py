@@ -6,7 +6,7 @@ from resource_segmentation.types import Group, Resource, Segment
 
 class TestTruncation(unittest.TestCase):
     def test_no_truncation_needed(self):
-        """当 head/tail 不超过 gap_max_count 时，不需要裁剪"""
+        """当实际 count 等于 remain_count 时，不需要裁剪"""
         group = Group(
             head_remain_count=200,
             tail_remain_count=200,
@@ -15,7 +15,7 @@ class TestTruncation(unittest.TestCase):
             tail=[Resource(100, 0, 0, 3), Resource(100, 0, 0, 4)],
         )
 
-        result = truncate_gap(group, gap_max_count=200)
+        result = truncate_gap(group)
 
         self.assertEqual(
             _group_to_json(result),
@@ -28,29 +28,49 @@ class TestTruncation(unittest.TestCase):
             },
         )
 
-    def test_truncate_tail_from_end(self):
-        """裁剪 tail 中的 Segment，从后往前保留"""
+    def test_truncate_tail_with_larger_remain_count(self):
+        """tail_remain_count > 实际 count，从前往后保留（靠近 body）"""
         group = Group(
             head_remain_count=0,
-            tail_remain_count=320,
+            tail_remain_count=200,  # 建议保留 200，但实际只有 150
             head=[],
             body=[Resource(640, 0, 0, 0)],
             tail=[
-                Segment(
-                    count=320,
-                    resources=[
-                        Resource(80, 0, 0, 1),
-                        Resource(80, 0, 0, 2),
-                        Resource(80, 0, 0, 3),
-                        Resource(80, 0, 0, 4),
-                    ],
-                )
+                Resource(80, 0, 0, 1),
+                Resource(70, 0, 0, 2),
             ],
         )
 
-        result = truncate_gap(group, gap_max_count=150)
+        result = truncate_gap(group)
 
-        # tail 从后往前保留 150 tokens (最后 1 个 80)
+        # tail 实际只有 150，小于 remain_count=200，所以保留全部
+        self.assertEqual(
+            _group_to_json(result),
+            {
+                "head_remain": 0,
+                "tail_remain": 150,
+                "head": [],
+                "body": ["T[0]640"],
+                "tail": ["T[1]80", "T[2]70"],
+            },
+        )
+
+    def test_truncate_tail_with_smaller_remain_count(self):
+        """tail_remain_count < 实际 count，从前往后保留（靠近 body）"""
+        group = Group(
+            head_remain_count=0,
+            tail_remain_count=80,  # 只保留 80，实际有 150
+            head=[],
+            body=[Resource(640, 0, 0, 0)],
+            tail=[
+                Resource(80, 0, 0, 1),
+                Resource(70, 0, 0, 2),
+            ],
+        )
+
+        result = truncate_gap(group)
+
+        # tail 从前往后保留 80，只能装第一个
         self.assertEqual(
             _group_to_json(result),
             {
@@ -58,55 +78,75 @@ class TestTruncation(unittest.TestCase):
                 "tail_remain": 80,
                 "head": [],
                 "body": ["T[0]640"],
-                "tail": ["T[4]80"],
+                "tail": ["T[1]80"],
             },
         )
 
-    def test_truncate_head_from_start(self):
-        """裁剪 head，从前往后保留"""
+    def test_truncate_head_with_larger_remain_count(self):
+        """head_remain_count > 实际 count，从后往前保留（靠近 body）"""
         group = Group(
-            head_remain_count=320,
+            head_remain_count=200,  # 建议保留 200，但实际只有 150
             tail_remain_count=0,
             head=[
-                Segment(
-                    count=320,
-                    resources=[
-                        Resource(80, 0, 0, 0),
-                        Resource(80, 0, 0, 1),
-                        Resource(80, 0, 0, 2),
-                        Resource(80, 0, 0, 3),
-                    ],
-                )
+                Resource(80, 0, 0, 0),
+                Resource(70, 0, 0, 1),
             ],
-            body=[Resource(640, 0, 0, 4)],
+            body=[Resource(640, 0, 0, 2)],
             tail=[],
         )
 
-        result = truncate_gap(group, gap_max_count=150)
+        result = truncate_gap(group)
 
-        # head 从前往后保留 150 tokens (前 1 个 80)
+        # head 实际只有 150，小于 remain_count=200，所以保留全部
         self.assertEqual(
             _group_to_json(result),
             {
-                "head_remain": 80,
+                "head_remain": 150,
                 "tail_remain": 0,
-                "head": ["T[0]80"],
-                "body": ["T[4]640"],
+                "head": ["T[0]80", "T[1]70"],
+                "body": ["T[2]640"],
+                "tail": [],
+            },
+        )
+
+    def test_truncate_head_with_smaller_remain_count(self):
+        """head_remain_count < 实际 count，从后往前保留（靠近 body）"""
+        group = Group(
+            head_remain_count=70,  # 只保留 70，实际有 150
+            tail_remain_count=0,
+            head=[
+                Resource(80, 0, 0, 0),
+                Resource(70, 0, 0, 1),
+            ],
+            body=[Resource(640, 0, 0, 2)],
+            tail=[],
+        )
+
+        result = truncate_gap(group)
+
+        # head 从后往前保留 70，只能装最后一个
+        self.assertEqual(
+            _group_to_json(result),
+            {
+                "head_remain": 70,
+                "tail_remain": 0,
+                "head": ["T[1]70"],
+                "body": ["T[2]640"],
                 "tail": [],
             },
         )
 
     def test_truncate_to_zero(self):
-        """gap_max_count 为 0 时，清空 head/tail"""
+        """remain_count 为 0 时，清空 head/tail"""
         group = Group(
-            head_remain_count=100,
-            tail_remain_count=100,
+            head_remain_count=0,
+            tail_remain_count=0,
             head=[Resource(100, 0, 0, 0)],
             body=[Resource(400, 0, 0, 1)],
             tail=[Resource(100, 0, 0, 2)],
         )
 
-        result = truncate_gap(group, gap_max_count=0)
+        result = truncate_gap(group)
 
         self.assertEqual(
             _group_to_json(result),
@@ -119,11 +159,11 @@ class TestTruncation(unittest.TestCase):
             },
         )
 
-    def test_truncate_tail_multiple_resources(self):
-        """tail 包含多个 resources，从后往前保留"""
+    def test_truncate_segment_in_tail(self):
+        """tail 包含 Segment，从前往后保留（靠近 body）"""
         group = Group(
             head_remain_count=0,
-            tail_remain_count=240,
+            tail_remain_count=80,  # 只保留 80，实际有 240
             head=[],
             body=[Resource(640, 0, 0, 0)],
             tail=[
@@ -138,9 +178,9 @@ class TestTruncation(unittest.TestCase):
             ],
         )
 
-        result = truncate_gap(group, gap_max_count=150)
+        result = truncate_gap(group)
 
-        # tail 从后往前保留 150 tokens (最后 1 个 80)
+        # tail 从前往后保留 80，只能装第一个 Resource
         self.assertEqual(
             _group_to_json(result),
             {
@@ -148,7 +188,7 @@ class TestTruncation(unittest.TestCase):
                 "tail_remain": 80,
                 "head": [],
                 "body": ["T[0]640"],
-                "tail": ["T[3]80"],
+                "tail": ["T[1]80"],
             },
         )
 

@@ -5,22 +5,27 @@ from __future__ import annotations
 from .types import Group, P, Resource, Segment
 
 
-def truncate_gap(group: Group[P], gap_max_count: int) -> Group[P]:
+def truncate_gap(group: Group[P]) -> Group[P]:
     """
-    Truncate group's head and tail to respect gap_max_count limit.
+    Truncate group's head and tail to respect remain_count limits.
 
-    This function ensures that head and tail don't exceed gap_max_count
-    by extracting only the necessary resources.
+    This function ensures that head and tail match their remain_count
+    by extracting only the necessary resources. Truncation preserves continuity:
+    - head: keeps the end (near body), truncates the start
+    - tail: keeps the start (near body), truncates the end
 
     Args:
         group: The group to truncate
-        gap_max_count: Maximum count allowed for head/tail
 
     Returns:
         A new group with truncated head and tail
     """
-    truncated_head = _truncate_items(group.head, gap_max_count, from_start=True)
-    truncated_tail = _truncate_items(group.tail, gap_max_count, from_start=False)
+    truncated_head = _truncate_items(
+        group.head, group.head_remain_count, from_start=False
+    )
+    truncated_tail = _truncate_items(
+        group.tail, group.tail_remain_count, from_start=True
+    )
 
     # Recalculate remain counts after truncation
     head_remain_count = sum(item.count for item in truncated_head)

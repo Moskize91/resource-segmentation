@@ -44,4 +44,4 @@ def split(
             border_incision=border_incision,
         ),
     ):
-        yield truncate_gap(group, gap_max_count)
+        yield truncate_gap(group)
