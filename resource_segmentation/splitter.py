@@ -1,7 +1,9 @@
+from math import floor
 from typing import Generator, Iterator
 
 from .group import group_items
 from .segment import allocate_segments
+from .truncation import truncate_gap
 from .types import Group, P, Resource
 
 
@@ -28,13 +30,17 @@ def split(
     Yields:
       Generator[Group, None, None]: A generator yielding grouped resource sets. Each group is a `Group` object.
     """
-    yield from group_items(
+    gap_max_count = floor(max_segment_count * gap_rate)
+    body_max_count = max_segment_count - gap_max_count * 2
+
+    for group in group_items(
         max_count=max_segment_count,
         gap_rate=gap_rate,
         tail_rate=tail_rate,
         items_iter=allocate_segments(
             resources_iter=resources,
-            max_count=max_segment_count,
+            max_count=body_max_count,
             border_incision=border_incision,
         ),
-    )
+    ):
+        yield truncate_gap(group)
