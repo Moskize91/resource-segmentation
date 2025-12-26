@@ -48,7 +48,7 @@ class TestTruncation(unittest.TestCase):
             _group_to_json(result),
             {
                 "head_remain": 0,
-                "tail_remain": 150,
+                "tail_remain": 200,
                 "head": [],
                 "body": ["T[0]640"],
                 "tail": ["T[1]80", "T[2]70"],
@@ -101,7 +101,7 @@ class TestTruncation(unittest.TestCase):
         self.assertEqual(
             _group_to_json(result),
             {
-                "head_remain": 150,
+                "head_remain": 200,
                 "tail_remain": 0,
                 "head": ["T[0]80", "T[1]70"],
                 "body": ["T[2]640"],
