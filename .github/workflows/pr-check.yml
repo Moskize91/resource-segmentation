@@ -34,7 +34,7 @@ jobs:
 
       - name: Run pyright checking
         run: |
-          poetry run pyright pdf_craft tests
+          poetry run pyright resource_segmentation tests
 
       - name: Run linting
         run: |

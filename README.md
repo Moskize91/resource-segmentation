@@ -1,4 +1,13 @@
-# Resource Segmentation
+<div align=center>
+  <h1>Resource Segmentation</h1>
+  <p>
+    <a href="https://github.com/Moskize91/resource-segmentation/actions/workflows/pr-check.yml" target="_blank"><img src="https://img.shields.io/github/actions/workflow/status/Moskize91/resource-segmentation/pr-check.yml" alt="ci" /></a>
+    <a href="https://pypi.org/project/resource-segmentation/" target="_blank"><img src="https://img.shields.io/badge/pip_install-resource--segmentation-blue" alt="pip install resource-segmentation" /></a>
+    <a href="https://pypi.org/project/resource-segmentation/" target="_blank"><img src="https://img.shields.io/pypi/v/resource-segmentation.svg" alt="pypi resource-segmentation" /></a>
+    <a href="https://pypi.org/project/resource-segmentation/" target="_blank"><img src="https://img.shields.io/pypi/pyversions/resource-segmentation.svg" alt="python versions" /></a>
+    <a href="https://github.com/Moskize91/resource-segmentation/blob/main/LICENSE" target="_blank"><img src="https://img.shields.io/github/license/Moskize91/resource-segmentation" alt="license" /></a>
+  </p>
+</div>
 
 A Python library for intelligently grouping and segmenting resources with configurable overlap and boundary conditions.
 
