@@ -1,17 +1,14 @@
 {
-  "editor.tabSize": 2,
-  "editor.insertSpaces": true,
-  "files.trimTrailingWhitespace": true,
-  "pylint.args": [
-    "--generate-members"
-  ],
-  "cSpell.words": [
-    "pylint",
-    "Zeyu"
-  ],
-  "python-envs.defaultEnvManager": "ms-python.python:poetry",
-  "python-envs.defaultPackageManager": "ms-python.python:poetry",
-  "python-envs.pythonProjects": [],
-  "python.defaultInterpreterPath": "/Users/taozeyu/anaconda3/bin/python3",
-  "python.terminal.activateEnvironment": false
+    "editor.tabSize": 4,
+    "editor.insertSpaces": true,
+    "files.trimTrailingWhitespace": true,
+    "[python]": {
+        "editor.defaultFormatter": "charliermarsh.ruff",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": "explicit",
+            "source.fixAll": "explicit"
+        },
+        "files.trimTrailingWhitespace": true
+    },
 }
