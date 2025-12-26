@@ -1,30 +1,18 @@
-"""Truncate head and tail to respect gap_max_count limits."""
-
-from __future__ import annotations
+from typing import cast
 
 from .types import Group, P, Resource, Segment
 
 
 def truncate_gap(group: Group[P]) -> Group[P]:
-    """
-    Truncate group's head and tail to respect remain_count limits.
-
-    This function ensures that head and tail match their remain_count
-    by extracting only the necessary resources. Truncation preserves continuity:
-    - head: keeps the end (near body), truncates the start
-    - tail: keeps the start (near body), truncates the end
-
-    Args:
-        group: The group to truncate
-
-    Returns:
-        A new group with truncated head and tail
-    """
-    truncated_head = _truncate_items(
-        group.head, group.head_remain_count, from_start=False
+    truncated_head = _truncate_group_parts(
+        parts=group.head,
+        remain_count=group.head_remain_count,
+        remain_head=False,
     )
-    truncated_tail = _truncate_items(
-        group.tail, group.tail_remain_count, from_start=True
+    truncated_tail = _truncate_group_parts(
+        parts=group.tail,
+        remain_count=group.tail_remain_count,
+        remain_head=True,
     )
 
     # Recalculate remain counts after truncation
@@ -40,148 +28,52 @@ def truncate_gap(group: Group[P]) -> Group[P]:
     )
 
 
-def _truncate_items(
-    items: list[Resource[P] | Segment[P]], target_count: int, from_start: bool
+def _truncate_group_parts(
+    parts: list[Resource[P] | Segment[P]],
+    remain_count: int,
+    remain_head: bool,
 ) -> list[Resource[P] | Segment[P]]:
-    """
-    Truncate items to match target_count.
+    truncated: list[Resource[P] | Segment[P]] = []
 
-    Args:
-        items: List of resources or segments
-        target_count: Target total count
-        from_start: If True, keep items from start; if False, keep items from end
+    for part in parts if remain_head else reversed(parts):
+        if remain_count <= 0:
+            break
+        if isinstance(part, Resource):
+            truncated.append(part)
+            remain_count -= part.count
+        elif isinstance(part, Segment):
+            truncated_resources = _truncate_resources(
+                resources=part.resources,
+                remain_count=remain_count,
+                remain_head=remain_head,
+            )
+            truncated_segment: Segment[P] = Segment(
+                count=sum(r.count for r in truncated_resources),
+                resources=truncated_resources,
+            )
+            truncated.append(truncated_segment)
+            remain_count -= truncated_segment.count
 
-    Returns:
-        Truncated list of items
-    """
-    if target_count == 0:
-        return []
+    if not remain_head:
+        truncated.reverse()
 
-    if from_start:
-        return _truncate_from_start(items, target_count)
+    if len(truncated) == 1 and isinstance(truncated[0], Segment):
+        return cast(list[Resource[P] | Segment[P]], truncated[0].resources)
     else:
-        return _truncate_from_end(items, target_count)
+        return truncated
 
 
-def _truncate_from_start(
-    items: list[Resource[P] | Segment[P]], target_count: int
-) -> list[Resource[P] | Segment[P]]:
-    """Truncate items keeping the start (for head)"""
-    current_count = 0
-    result: list[Resource[P] | Segment[P]] = []
-
-    for item in items:
-        if current_count >= target_count:
-            break
-
-        remaining = target_count - current_count
-
-        if item.count <= remaining:
-            # Item fits completely
-            result.append(item)
-            current_count += item.count
-        else:
-            # Need to truncate this item
-            if isinstance(item, Segment):
-                # Truncate segment by extracting resources from start
-                truncated_resources = _extract_resources_from_start(
-                    item.resources, remaining
-                )
-                if len(truncated_resources) == 1:
-                    result.append(truncated_resources[0])
-                else:
-                    result.append(
-                        Segment(
-                            count=sum(r.count for r in truncated_resources),
-                            resources=truncated_resources,
-                        )
-                    )
-                current_count += sum(r.count for r in truncated_resources)
-            else:
-                # Resource itself is too large, stop here
-                break
-
-    return result
-
-
-def _truncate_from_end(
-    items: list[Resource[P] | Segment[P]], target_count: int
-) -> list[Resource[P] | Segment[P]]:
-    """Truncate items keeping the end (for tail)"""
-    current_count = 0
-    result: list[Resource[P] | Segment[P]] = []
-
-    # Process items in reverse order
-    for item in reversed(items):
-        if current_count >= target_count:
-            break
-
-        remaining = target_count - current_count
-
-        if item.count <= remaining:
-            # Item fits completely
-            result.insert(0, item)  # Insert at front to maintain order
-            current_count += item.count
-        else:
-            # Need to truncate this item
-            if isinstance(item, Segment):
-                # Truncate segment by extracting resources from end
-                truncated_resources = _extract_resources_from_end(
-                    item.resources, remaining
-                )
-                if len(truncated_resources) == 1:
-                    result.insert(0, truncated_resources[0])
-                else:
-                    result.insert(
-                        0,
-                        Segment(
-                            count=sum(r.count for r in truncated_resources),
-                            resources=truncated_resources,
-                        ),
-                    )
-                current_count += sum(r.count for r in truncated_resources)
-            else:
-                # Resource itself is too large, stop here
-                break
-
-    return result
-
-
-def _extract_resources_from_start(
-    resources: list[Resource[P]], target_count: int
+def _truncate_resources(
+    resources: list[Resource[P]],
+    remain_count: int,
+    remain_head: bool,
 ) -> list[Resource[P]]:
-    """Extract resources from start up to target_count"""
-    current_count = 0
-    result: list[Resource[P]] = []
-
-    for resource in resources:
-        if current_count >= target_count:
+    truncated: list[Resource[P]] = []
+    for resource in resources if remain_head else reversed(resources):
+        if remain_count <= 0:
             break
-
-        if current_count + resource.count <= target_count:
-            result.append(resource)
-            current_count += resource.count
-        else:
-            break
-
-    return result
-
-
-def _extract_resources_from_end(
-    resources: list[Resource[P]], target_count: int
-) -> list[Resource[P]]:
-    """Extract resources from end up to target_count"""
-    current_count = 0
-    result: list[Resource[P]] = []
-
-    for resource in reversed(resources):
-        if current_count >= target_count:
-            break
-
-        if current_count + resource.count <= target_count:
-            result.insert(0, resource)  # Insert at front to maintain order
-            current_count += resource.count
-        else:
-            break
-
-    return result
+        truncated.append(resource)
+        remain_count -= resource.count
+    if not remain_head:
+        truncated.reverse()
+    return truncated

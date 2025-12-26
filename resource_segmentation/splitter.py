@@ -30,7 +30,6 @@ def split(
     Yields:
       Generator[Group, None, None]: A generator yielding grouped resource sets. Each group is a `Group` object.
     """
-    # Calculate body_max_count to ensure Segments don't exceed body capacity
     gap_max_count = floor(max_segment_count * gap_rate)
     body_max_count = max_segment_count - gap_max_count * 2
 
